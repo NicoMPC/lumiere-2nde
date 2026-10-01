@@ -157,7 +157,7 @@ function figPrisme(anim = false) {
     <line x1="6" y1="121" x2="122.3" y2="97.5" stroke="#fff" stroke-width="4" stroke-linecap="round" class="white ${anim ? 'beam' : ''}"/>
     ${fan}
     <polygon points="160,25 95,150 225,150" class="glass"/>
-    ${anim ? '' : `<text x="8" y="108" class="med">lumière blanche</text><text x="312" y="88" text-anchor="end" class="med">rouge : le moins dévié</text><text x="312" y="174" text-anchor="end" class="med">violet : le plus dévié</text><text x="160" y="166" text-anchor="middle" class="med">prisme</text>`}
+    ${anim ? '' : `<text x="8" y="142" class="med">lumière blanche</text><text x="312" y="74" text-anchor="end" class="med">rouge : le moins dévié</text><text x="312" y="174" text-anchor="end" class="med">violet : le plus dévié</text><text x="160" y="166" text-anchor="middle" class="med">prisme</text>`}
     </svg>`;
 }
 function figRGB(on = [1, 1, 1], labels = true) {

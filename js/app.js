@@ -226,7 +226,7 @@ function labRefraction() {
 
 function labSpectres() {
     let src = 'chaud', T = 3000, gas = 'H', mode = 'emission', filt = 'R', star = null, pick = new Set();
-    const FILT = { R: ['rouge', [[620, 800]]], V: ['vert', [[495, 570]]], B: ['bleu', [[430, 495]]] };
+    const FILT = { R: ['rouge', [[620, 800]]], V: ['vert', [[495, 555]]], B: ['bleu', [[430, 495]]] };
     const COMBOS = [['H'], ['Na'], ['Hg'], ['Li'], ['H', 'Na'], ['H', 'Li'], ['Na', 'Hg'], ['Hg', 'Li'], ['H', 'Hg'], ['Na', 'Li']];
     const POOL = ['H', 'Na', 'Hg', 'Li'];
     app.innerHTML = `${crumb('atelier', 'Atelier', 'Spectres')}<h1>Spectres</h1><p class="sub">Choisis la source de lumière et regarde son spectre.</p>
@@ -252,7 +252,7 @@ function labSpectres() {
             $$('[data-g]', c).forEach(b => b.onclick = () => { gas = b.dataset.g; draw(); });
             $$('[data-m]', c).forEach(b => b.onclick = () => { mode = b.dataset.m; draw(); });
             f.innerHTML = spectrum({ mode, lines: GAZ[gas].raies });
-            t.innerHTML = `<p><b>Spectre de raies d'${mode === 'emission' ? 'émission' : 'absorption'}</b> — ${GAZ[gas].nom}.<br>Raies à ${GAZ[gas].raies.join(' – ')} nm. ${mode === 'emission' ? 'Passe en « lumière blanche à travers le gaz » : les raies noires tombent exactement aux mêmes endroits.' : 'Les raies noires sont aux mêmes longueurs d\'onde que les raies d\'émission.'}</p>`;
+            t.innerHTML = `<p><b>Spectre de raies d'${mode === 'emission' ? 'émission' : 'absorption'}</b> — ${GAZ[gas].nom}.<br>${GAZ[gas].raies.length > 1 ? 'Raies' : 'Raie'} à ${GAZ[gas].raies.join(' – ')} nm. ${mode === 'emission' ? 'Passe en « lumière blanche à travers le gaz » : les raies noires tombent exactement aux mêmes endroits.' : 'Les raies noires sont aux mêmes longueurs d\'onde que les raies d\'émission.'}</p>`;
         } else {
             c.innerHTML = `<div class="chips">${Object.keys(FILT).map(k => `<button class="chip ${k === filt ? 'on' : ''}" data-f="${k}">Filtre ${FILT[k][0]}</button>`).join('')}</div>`;
             $$('[data-f]', c).forEach(b => b.onclick = () => { filt = b.dataset.f; draw(); });
@@ -268,7 +268,7 @@ function labSpectres() {
           <div class="refs">${POOL.map(k => `<div class="ref"><span>${GAZ[k].nom}</span>${spectrum({ mode: 'emission', lines: GAZ[k].raies, axis: false, h: 18 })}</div>`).join('')}</div>
           <div class="chips">${POOL.map(k => `<button class="chip ${pick.has(k) ? 'on' : ''}" data-k="${k}">${GAZ[k].nom}</button>`).join('')}</div>
           <div class="ex-actions"><button class="btn primary" id="st-ok">Vérifier</button><button class="btn ghost" id="st-new">Nouvelle étoile</button><span class="meter-t">${S.star} étoile${S.star > 1 ? 's' : ''} identifiée${S.star > 1 ? 's' : ''}</span></div>
-          ${res === true ? `<div class="ex-fb ok"><b>Exact.</b> ${star.map(k => GAZ[k].nom).join(' et ')} : toutes ses raies sont dans le spectre.</div>` : res === false ? '<div class="ex-fb ko"><b>Pas encore.</b> Un élément est présent seulement si <u>toutes</u> ses raies sont là. Vérifie raie par raie.</div>' : ''}`;
+          ${res === true ? `<div class="ex-fb ok"><b>Exact.</b> ${star.map((k, n) => n ? GAZ[k].nom.toLowerCase() : GAZ[k].nom).join(' et ')} : toutes ${star.length > 1 ? 'leurs' : 'ses'} raies sont dans le spectre.</div>` : res === false ? '<div class="ex-fb ko"><b>Pas encore.</b> Un élément est présent seulement si <u>toutes</u> ses raies sont là. Vérifie raie par raie.</div>' : ''}`;
         $$('[data-k]', $('#st-box')).forEach(b => b.onclick = () => { pick.has(b.dataset.k) ? pick.delete(b.dataset.k) : pick.add(b.dataset.k); b.classList.toggle('on'); });
         $('#st-new').onclick = newStar;
         $('#st-ok').onclick = () => {
@@ -424,7 +424,7 @@ function vFiche() {
       ${b('Le sens du rayon', `Indice plus grand → se rapproche de la normale.<br>Indice plus petit → s'écarte de la normale.<br>i₁ = 0° → pas dévié.`)}
       ${b('Les spectres', `<b>Continu</b> : corps chaud. Plus chaud → plus de violet.<br><b>Raies d'émission</b> (fond noir) : gaz excité.<br><b>Raies d'absorption</b> (raies noires) : lumière blanche à travers un gaz.<br><b>Bandes noires larges</b> : filtre, solution.<br>Un élément est présent si <u>toutes</u> ses raies y sont.`)}
       ${b('Le prisme', `Violet : le plus dévié.<br>Rouge : le moins dévié.`)}
-      ${b('Couleurs', `Rouge + vert + bleu = blanc.<br>Filtre : transmet sa couleur, absorbe le reste.<br>Objet : diffuse sa couleur. Sans elle → noir.`)}
+      ${b('Couleurs', `Rouge + vert + bleu = blanc.<br>Filtre rouge, vert ou bleu : transmet sa couleur, absorbe les deux autres.<br>Objet rouge, vert ou bleu : diffuse sa couleur. Sans elle → noir.`)}
     </div>
     <div class="card"><h3>Les 8 vérifications</h3><ul class="plan">${VERIFS.map((v, i) => `<li><label><input type="checkbox" data-c="${i}" ${S.check[i] ? 'checked' : ''}><span>${v}</span></label></li>`).join('')}</ul></div>
     <p><a class="btn ghost" href="#controle">← Avant le contrôle</a></p>`;
