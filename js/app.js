@@ -38,7 +38,7 @@ const flDue = i => !S.fl[i] || S.fl[i].d <= dayNum();
 
 /* ================= SAUVEGARDE, PROGRESSION ================= */
 function write() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
-function save() { S.days[dayNum()] = 1; if (retryList().length) S.hadRetry = true; write(); progress(); checkBadges(); }
+function save() { S.days[dayNum()] = 1; if (retryList().length) S.hadRetry = true; write(); progress(); }
 function stats() {
     return {
         cours: [CH.reduce((n, c) => n + (S.read[c.id] ? 1 : 0) + (S.quick[c.id] ? 1 : 0), 0), CH.length * 2],
@@ -74,51 +74,6 @@ function confetti(x, y, n = 46) {
         if (p.animate) p.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: `translate(${dx}px,${dy - 70}px) rotate(${Math.random() * 600}deg)`, opacity: 1, offset: .6 }, { transform: `translate(${dx * 1.1}px,${dy + 200}px) rotate(${Math.random() * 900}deg)`, opacity: 0 }], { duration: 1200 + Math.random() * 700, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' });
     }
     setTimeout(() => box.remove(), 2100);
-}
-const BADGES = [
-    { id: 'start', ic: '✨', t: 'Première étincelle', d: 'Un premier chapitre compris', ok: () => CH.some(c => S.read[c.id]) },
-    { id: 'cours', ic: '📘', t: 'Le cours dans la poche', d: 'Tous les chapitres compris, toutes les questions réussies', ok: () => { const s = stats().cours; return s[0] === s[1]; } },
-    { id: 'ex10', ic: '🚀', t: 'Décollage', d: '10 exercices réussis', ok: () => nOk() >= 10 },
-    { id: 'ex25', ic: '🔥', t: 'Vitesse de croisière', d: '25 exercices réussis', ok: () => nOk() >= 25 },
-    { id: 'theme', ic: '🎯', t: 'Thème bouclé', d: `Tous les exercices d'un thème réussis`, ok: () => Object.keys(THEMES).some(k => { const l = EX.filter(e => e.t === k); return l.length && l.every(e => stOf(e.id) === 'ok'); }) },
-    { id: 'solo', ic: '🌟', t: 'Sans filet', d: '15 exercices réussis sans ouvrir l\'indice', ok: () => nSolo() >= 15 },
-    { id: 'tenace', ic: '💪', t: 'Ténacité', d: 'La liste « à retravailler » entièrement vidée', ok: () => S.hadRetry && !retryList().length },
-    { id: 'express', ic: '⚡', t: 'Réflexes', d: '20 questions express réussies', ok: () => S.express >= 20 },
-    { id: 'pow', ic: '🔟', t: 'Puissance 10', d: '5 bonnes réponses de suite aux puissances', ok: () => S.powBest >= 5 },
-    { id: 'pow10', ic: '💥', t: 'Série imbattable', d: '10 de suite aux puissances', ok: () => S.powBest >= 10 },
-    { id: 'refr', ic: '📐', t: 'Rayons domptés', d: 'Les 4 défis du simulateur de réfraction', ok: () => ['rf1', 'rf2', 'rf3', 'rf4'].every(k => S.lab[k]) },
-    { id: 'guide', ic: '🧭', t: 'Snell-Descartes validé', d: '3 réfractions guidées menées au bout', ok: () => !!S.lab.guide },
-    { id: 'schema', ic: '🦅', t: 'Œil de lynx', d: 'Le schéma à trous sans une erreur', ok: () => !!S.lab.schema },
-    { id: 'star', ic: '⭐', t: 'Chasse aux étoiles', d: '3 étoiles mystères identifiées', ok: () => !!S.lab.star },
-    { id: 'flash', ic: '🧠', t: 'Mémoire vive', d: 'Toutes les cartes mémoire sues', ok: () => { const s = stats().flash; return s[0] === s[1]; } },
-    { id: 'jour3', ic: '📅', t: 'Régularité', d: '3 jours de révision', ok: () => Object.keys(S.days).length >= 3 },
-    { id: 'blanc', ic: '🎓', t: 'Au point', d: '16 ou plus au contrôle blanc', ok: () => S.best !== null && S.best >= 16 },
-    { id: 'blanc20', ic: '💯', t: '20 sur 20', d: 'Le contrôle blanc parfait', ok: () => S.best === 20 },
-    { id: 'exall', ic: '🌈', t: 'Lumière totale', d: 'Tous les exercices de la banque réussis', mega: true, ok: () => nOk() === EX.length }
-];
-const rwQueue = []; let rwBusy = false;
-function checkBadges(silent) {
-    const fresh = BADGES.filter(b => !S.badges[b.id] && b.ok());
-    if (!fresh.length) return;
-    fresh.forEach(b => S.badges[b.id] = Date.now()); write();
-    if (silent) return;
-    fresh.forEach(b => rwQueue.push(b)); nextReward();
-}
-function nextReward() {
-    if (rwBusy || !rwQueue.length) return;
-    const b = rwQueue.shift(); rwBusy = true; buzz([20, 40, 60]);
-    if (b.mega) return megaReward(b);
-    const r = $('#reward');
-    r.innerHTML = `<div class="rw-ic">${b.ic}</div><a class="rw-t" href="#recompenses"><small>Nouvelle récompense</small><b>${b.t}</b><span>${b.d}</span></a><button class="btn ghost small" data-share>Partager</button>`;
-    r.classList.add('on'); confetti(innerWidth / 2, 110);
-    setTimeout(() => { r.classList.remove('on'); rwBusy = false; setTimeout(nextReward, 350); }, 4600);
-}
-function megaReward(b) {
-    const o = document.createElement('div'); o.className = 'mega';
-    o.innerHTML = `<div class="mega-in">${figPrisme(true)}<div class="mega-ic">${b.ic}</div><h2 class="grad">${b.t}</h2><p>Tous les exercices de la banque, réussis. Absolument tous.<br>Très peu de gens vont jusque-là.</p><div class="ex-actions center"><button class="btn primary big" id="mega-ok">Continuer</button><button class="btn ghost" data-share>Partager le site</button></div></div>`;
-    document.body.appendChild(o);
-    [0, 500, 1000, 1600].forEach((t, i) => setTimeout(() => confetti(innerWidth * (0.2 + 0.2 * i), innerHeight * 0.3, 60), t));
-    $('#mega-ok', o).onclick = () => { o.remove(); rwBusy = false; nextReward(); };
 }
 function share() {
     const d = { title: 'La lumière — 2nde', text: 'Cours illustré, simulateurs et exercices corrigés pour réviser la lumière en 2nde.', url: SITE };
@@ -268,14 +223,12 @@ function runner(box, o) {
     persist(); draw();
 }
 function vExos(sub) {
-    if (sub === 'express') return vExpress();
     const retry = retryList(), keys = Object.keys(THEMES);
     if (!sub || (sub !== 'R' && !THEMES[sub])) {
         const s = stats();
-        app.innerHTML = `<h1>Exercices</h1><p class="sub">${EX.length} exercices corrigés, plus des questions express qui changent à chaque fois.</p>
+        app.innerHTML = `<h1>Exercices</h1><p class="sub">${EX.length} exercices corrigés, chacun avec un indice et une correction détaillée.</p>
         <div class="card total">${meter(s.exos)}<span class="solo" title="réussis sans indice">★ ${nSolo()}</span></div>
         <p class="note">★ = réussi sans ouvrir l'indice. L'indice ne donne jamais la réponse : s'en servir, c'est déjà travailler.</p>
-        ${HASGEN ? `<a class="row hot2" href="#exos/express"><span class="num">⚡</span><span class="row-t"><b>Entraînement express</b><small>Petites questions mélangées, valeurs nouvelles à chaque fois · ${S.express} réussie${S.express > 1 ? 's' : ''}</small></span><span class="go">→</span></a>` : ''}
         ${retry.length ? `<a class="row hot" href="#exos/R"><span class="num">↻</span><span class="row-t"><b>À retravailler</b><small>${plur(retry.length, 'exercice')} à refaire</small></span><span class="go">→</span></a>` : ''}
         <div class="list">${keys.map(k => { const l = EX.filter(e => e.t === k), ok = l.filter(e => stOf(e.id) === 'ok').length; return `<a class="row" href="#exos/${k}"><span class="row-t"><b>${THEMES[k].nom}</b><small>${plur(l.length, 'exercice')}</small></span><span class="row-m">${meter([ok, l.length])}</span></a>`; }).join('')}</div>`;
         return;
@@ -283,23 +236,13 @@ function vExos(sub) {
     const list = sub === 'R' ? retry : EX.filter(e => e.t === sub), nx = sub === 'R' ? null : keys[keys.indexOf(sub) + 1];
     app.innerHTML = `${crumb('exos', 'Exercices', sub === 'R' ? 'À retravailler' : THEMES[sub].nom)}<h1>${sub === 'R' ? 'À retravailler' : THEMES[sub].nom}</h1>
     ${list.length ? '' : '<p class="sub">Plus rien à refaire ici. Liste vidée.</p>'}<div id="exlist"></div>
-    <div class="pn"><a class="btn ghost" href="#exos">← Tous les thèmes</a>${nx ? `<a class="btn ghost" href="#exos/${nx}">${THEMES[nx].nom} →</a>` : HASGEN ? '<a class="btn ghost" href="#exos/express">Entraînement express →</a>' : ''}</div>`;
+    <div class="pn"><a class="btn ghost" href="#exos">← Tous les thèmes</a>${nx ? `<a class="btn ghost" href="#exos/${nx}">${THEMES[nx].nom} →</a>` : ''}</div>`;
     const box = $('#exlist');
     list.forEach(ex => { const d = document.createElement('div'); box.appendChild(d); renderEx(ex, d); });
 }
-function vExpress() {
-    app.innerHTML = `${crumb('exos', 'Exercices', 'Express')}<h1>Entraînement express</h1><p class="sub">Des petites questions, jamais deux fois les mêmes valeurs. Une tentative, puis la correction.</p><div id="run"></div>`;
-    if (!HASGEN) { $('#run').innerHTML = '<p class="sub">Indisponible pour le moment.</p>'; return; }
-    let lastG = -1;
-    runner($('#run'), { kind: 'express', mode: 'once', make: () => { let g; do g = ri(0, GEN.length - 1); while (GEN.length > 1 && g === lastG); lastG = g; return { g, seed: rseed() }; },
-        top: () => `Réussies : <b>${S.express}</b>`, onAnswer: ok => { if (ok) { S.express++; save(); } } });
-}
-
-/* ================= ACCUEIL ================= */
 function nextAction() {
     const s = stats(), unread = CH.findIndex(c => !S.read[c.id]), any = s.cours[0] + s.exos[0] + s.flash[0] + s.lab[0] > 0;
     const due = FL.filter((f, i) => S.fl[i] && flDue(i)).length, retry = retryList().length, keys = Object.keys(THEMES);
-    if (any && S.daily[dayNum()] === undefined) return { href: '#jour', t: 'Le défi du jour', s: '5 questions mélangées, 3 minutes' };
     if (unread >= 0) return { href: '#cours/' + (unread + 1), t: unread ? 'Continuer le cours' : 'Commencer le cours', s: `Chapitre ${unread + 1} — ${CH[unread].title}` };
     if (retry) return { href: '#exos/R', t: 'Reprendre ce qui reste à retravailler', s: plur(retry, 'exercice') };
     if (due) return { href: '#controle/cartes', t: 'Les cartes du jour', s: `${plur(due, 'carte')} à revoir` };
@@ -319,7 +262,7 @@ function vHome() {
     else if (p < 70) msg = `${p} % du parcours. Le plus dur est derrière toi, continue sur ta lancée.`;
     else if (p < 100) msg = `${p} % ! Il ne reste presque rien. Garde les cartes mémoire et le contrôle blanc pour la fin.`;
     else msg = `Tout est fait. Vraiment tout. Chapeau.`;
-    const nd = Object.keys(S.days).length, due = FL.filter((f, i) => S.fl[i] && flDue(i)).length, got = BADGES.filter(b => S.badges[b.id]);
+    const nd = Object.keys(S.days).length, due = FL.filter((f, i) => S.fl[i] && flDue(i)).length;
     const tile = (href, t, sub, m, cls) => `<a class="tile ${cls}" href="#${href}"><h3>${t}</h3><p>${sub}</p>${m ? `<div class="tile-m">${meter(m)}</div>` : ''}</a>`;
     app.innerHTML = `
     <section class="hero">
@@ -329,7 +272,6 @@ function vHome() {
       <a class="next" href="${na.href}"><small>Prochaine étape</small><b>${na.t}</b><span>${na.s}</span><i>→</i></a>
       <div class="chips-info">
         ${d !== null ? `<a class="count" href="#controle">${d === 0 ? `Contrôle aujourd'hui` : d === 1 ? 'Contrôle demain' : `Contrôle dans ${d} jours`}</a>` : '<a class="count" href="#controle">Régler la date du contrôle</a>'}
-        ${nd > 1 ? `<span class="count c2">${nd}ᵉ jour de révision</span>` : ''}
         ${due ? `<a class="count c3" href="#controle/cartes">${plur(due, 'carte')} à revoir</a>` : ''}
         ${S.last ? `<a class="count c4" href="${S.last}">Reprendre où j'en étais</a>` : ''}
       </div>
@@ -338,20 +280,11 @@ function vHome() {
       ${tile('cours', 'Cours', `${CH.length} notions illustrées, une question pour vérifier chacune`, s.cours, 't1')}
       ${tile('atelier', 'Atelier', 'Fais bouger les rayons, les spectres, les couleurs', s.lab, 't2')}
       ${tile('methodes', 'Méthodes', 'Les recettes : « si je vois ça, je fais ça »', null, 't3')}
-      ${tile('exos', 'Exercices', `${EX.length} exercices corrigés et des questions express`, s.exos, 't4')}
-      ${tile('jour', 'Défi du jour', S.daily[dayNum()] !== undefined ? `Fait aujourd'hui : ${S.daily[dayNum()]} / 5` : '5 questions mélangées, 3 minutes', null, 't6')}
+      ${tile('exos', 'Exercices', `${EX.length} exercices corrigés, avec indice et correction`, s.exos, 't4')}
       ${tile('controle', 'Avant le contrôle', 'Fiche récap, cartes mémoire, contrôle blanc', s.flash, 't5')}
     </section>
-    <a class="strip" href="#recompenses"><span><b>Récompenses</b> ${got.length} / ${BADGES.length}</span><span class="strip-ic">${got.slice(-7).map(b => b.ic).join(' ') || 'La première arrive vite'}</span><i>→</i></a>
     <p class="center share-line">Ça peut servir à quelqu'un de ta classe ? ${shareBtn('Partager')}</p>`;
 }
-function vBadges() {
-    const got = BADGES.filter(b => S.badges[b.id]).length;
-    app.innerHTML = `${crumb('accueil', 'Accueil', 'Récompenses')}<h1>Récompenses</h1><p class="sub">${got} sur ${BADGES.length}. Elles se débloquent toutes seules en travaillant.</p>
-    <div class="badges">${BADGES.map(b => `<div class="badge-c ${S.badges[b.id] ? 'on' : ''} ${b.mega ? 'mega-b' : ''}"><div class="b-ic">${S.badges[b.id] ? b.ic : '?'}</div><b>${b.t}</b><small>${b.d}</small></div>`).join('')}</div>
-    <p class="center">${shareBtn()}</p>`;
-}
-
 /* ================= COURS ================= */
 function vCours(sub) {
     if (!sub || !CH[+sub - 1]) {
@@ -649,29 +582,6 @@ function vMeth() {
     $$('.aig-row').forEach(b => b.onclick = () => { const d = $('#rc' + b.dataset.r); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 }
 
-/* ================= DÉFI DU JOUR ================= */
-function vJour() {
-    const today = dayNum();
-    app.innerHTML = `${crumb('accueil', 'Accueil', 'Défi du jour')}<h1>Le défi du jour</h1><p class="sub" id="jr-sub">5 questions mélangées. Une tentative chacune, puis la correction.</p><div id="run"></div>`;
-    const box = $('#run');
-    const end = n => {
-        const s = $('#jr-sub'); s && s.remove();
-        box.innerHTML = `<div class="card center"><div class="note-big">${n}<small> / 5</small></div><p>${n === 5 ? 'Sans faute. Rien à ajouter.' : n >= 3 ? 'Solide. Les corrections que tu viens de lire feront le reste.' : 'Ce défi sert justement à repérer ce qui reste à consolider. Les corrections sont le plus important.'}</p><p class="note">Nouveau défi demain. Revenir chaque jour, même trois minutes, c'est ce qui fait retenir.</p>
-          <div class="ex-actions center">${HASGEN ? '<a class="btn primary" href="#exos/express">Encore ? Entraînement express</a>' : ''}<a class="btn ghost" href="#accueil">Accueil</a>${shareBtn('Partager')}</div></div>`;
-    };
-    if (S.daily[today] !== undefined) return end(S.daily[today]);
-    const resume = S.run && S.run.kind === 'jour' && S.run.day === today ? S.run : null; let items;
-    if (!resume) {
-        items = mix(retryList().filter(e => e.type !== 'order')).slice(0, 2).map(e => ({ id: e.id }));
-        if (HASGEN) { const g = shuffled(GEN.length); let j = 0; while (items.length < 5) items.push({ g: g[j++ % g.length], seed: rseed() }); }
-        else { const rest = mix(EX.filter(e => stOf(e.id) !== 'ok' && e.type !== 'order' && !items.some(i => i.id === e.id))); while (items.length < 5 && rest.length) items.push({ id: rest.pop().id }); }
-        items = mix(items);
-    }
-    runner(box, { kind: 'jour', mode: 'once', items, resume, persist: true, extra: { day: today }, onEnd: R => {
-        const n = R.recs.filter(r => r.ok).length; S.daily[today] = n; save(); end(n); window.scrollTo(0, 0); if (n >= 4) confetti();
-    } });
-}
-
 /* ================= AVANT LE CONTRÔLE ================= */
 function vCtrl(sub) {
     if (sub === 'fiche') return vFiche();
@@ -684,7 +594,6 @@ function vCtrl(sub) {
       <a class="row" href="#controle/fiche"><span class="row-t"><b>La fiche récap</b><small>Tout l'essentiel sur un écran</small></span><span class="go">→</span></a>
       <a class="row" href="#controle/cartes"><span class="row-t"><b>Cartes mémoire</b><small>${due ? `${plur(due, 'carte')} à voir aujourd'hui` : `Rien à revoir aujourd'hui`} · elles reviennent au bon moment</small></span><span class="row-m">${meter(s.flash)}</span></a>
       <a class="row" href="#controle/blanc"><span class="row-t"><b>Contrôle blanc</b><small>${BLANC.length} questions, noté sur 20${S.best !== null ? ` · meilleure note : ${S.best} / 20` : ''}</small></span><span class="go">→</span></a>
-      <a class="row" href="#jour"><span class="row-t"><b>Défi du jour</b><small>${S.daily[dayNum()] !== undefined ? `Fait : ${S.daily[dayNum()]} / 5` : '5 questions mélangées'}</small></span><span class="go">→</span></a>
       <a class="row" href="fiche-lumiere.pdf" target="_blank" rel="noopener"><span class="row-t"><b>La fiche à imprimer</b><small>Cours + méthodes en PDF</small></span><span class="go">↓</span></a>
     </div>
     <div class="card"><h3>Plan de révision</h3><ul class="plan">${PLAN.map((p, i) => `<li><label><input type="checkbox" data-p="${i}" ${S.plan[i] ? 'checked' : ''}><span><b>${p[0]} — ${p[1]}</b><small>${p[2]}</small></span></label></li>`).join('')}</ul></div>
@@ -773,7 +682,7 @@ function vBlanc() {
 }
 
 /* ================= NAVIGATION ================= */
-const ROUTES = { accueil: vHome, cours: vCours, atelier: vAtelier, methodes: vMeth, exos: vExos, controle: vCtrl, jour: vJour, recompenses: vBadges };
+const ROUTES = { accueil: vHome, cours: vCours, atelier: vAtelier, methodes: vMeth, exos: vExos, controle: vCtrl };
 const SCROLL = {}; let byClick = false, cur = location.hash;
 try { history.scrollRestoration = 'manual'; } catch (e) { }
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('a[href^="#"]')) byClick = true; }, true);
@@ -784,11 +693,10 @@ function route(keep) {
     byClick = false; cur = location.hash;
     app.innerHTML = '';
     ROUTES[name](sub);
-    const tab = name === 'jour' ? 'controle' : name;
-    $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === tab));
+    $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === name));
     if (keep !== true) { app.classList.remove('in'); void app.offsetWidth; app.classList.add('in'); }
     window.scrollTo(0, y);
-    if (name !== 'accueil' && name !== 'recompenses' && S.last !== location.hash) { S.last = location.hash; save(); }
+    if (name !== 'accueil' && S.last !== location.hash) { S.last = location.hash; save(); }
 }
 $('#themeBtn').onclick = () => { S.theme = S.theme === 'dark' ? 'light' : 'dark'; applyTheme(); save(); };
 window.addEventListener('hashchange', () => route());
@@ -799,4 +707,5 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'ArrowRight') $('#fc-yes').click();
     else if (e.key === 'ArrowLeft') $('#fc-no').click();
 });
-applyTheme(); progress(); checkBadges(true); route();
+if (/^#(jour|recompenses|exos\/express)/.test(S.last || '')) S.last = '';
+applyTheme(); progress(); route();
