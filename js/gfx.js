@@ -64,7 +64,7 @@ function ray(p, q, cls = 'ray', pos = 0.55) {
         `<polygon points="6,0 -6,-5.5 -6,5.5" transform="translate(${mx.toFixed(1)},${my.toFixed(1)}) rotate(${ang.toFixed(1)})" class="${cls} head"/>`;
 }
 function rayDiagram(o = {}) {
-    const { n1 = 1, n2 = 1.33, i = 40, mirror = false, names = false, letters = false, m1 = 'air', m2 = 'eau', reflect = true, angles = true, legend = true } = o;
+    const { n1 = 1, n2 = 1.33, i = 40, mirror = false, names = false, letters = false, m1 = 'air', m2 = 'eau', reflect = true, angles = true, legend = true, anim = false, hit = false } = o;
     const W = 320, H = 250, cx = 160, cy = 125, L = 112, rad = Math.PI / 180, a = i * rad;
     const s = mirror ? 2 : n1 * Math.sin(a) / n2, tot = s > 1, a2 = tot ? 0 : Math.asin(s), i2 = a2 / rad;
     const pt = (r, t) => [cx + r * Math.sin(t * rad), cy - r * Math.cos(t * rad)];
@@ -104,6 +104,14 @@ function rayDiagram(o = {}) {
         const badge = (p, t, dx, dy) => `<circle cx="${(p[0] + dx).toFixed(1)}" cy="${(p[1] + dy).toFixed(1)}" r="11" class="badge"/><text x="${(p[0] + dx).toFixed(1)}" y="${(p[1] + dy + 4.5).toFixed(1)}" text-anchor="middle" class="badget">${t}</text>`;
         g += badge(A, 'A', -4, -4) + badge(B, 'B', 4, -4) + badge(C, 'C', 10, 4);
     }
+    if (anim) {
+        const end = (mirror || tot) ? B : C;
+        g += `<circle r="5" class="photon"><animateMotion dur="2.4s" repeatCount="indefinite" path="M${A[0].toFixed(1)},${A[1].toFixed(1)} L${cx},${cy} L${end[0].toFixed(1)},${end[1].toFixed(1)}"/></circle>`;
+    }
+    if (hit) {
+        const hl = (p, q, k) => `<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" class="hit" data-k="${k}"/>`;
+        g += hl([0, cy], [W, cy], 'dioptre') + hl([cx, 6], [cx, H - 6], 'normale') + hl(A, I, 'incident') + hl(I, B, 'reflechi') + hl(I, C, 'refracte') + `<circle cx="${cx}" cy="${cy}" r="15" class="hit" data-k="point"/>`;
+    }
     return `<svg class="rays" viewBox="0 0 ${W} ${H}" role="img" aria-label="schéma de rayons lumineux">${g}</svg>`;
 }
 
@@ -111,29 +119,42 @@ function rayDiagram(o = {}) {
 function figSources() {
     let sun = '';
     for (let k = 0; k < 12; k++) { const t = k * 30 * Math.PI / 180; sun += `<line x1="${(52 + 28 * Math.cos(t)).toFixed(1)}" y1="${(52 + 28 * Math.sin(t)).toFixed(1)}" x2="${(52 + 38 * Math.cos(t)).toFixed(1)}" y2="${(52 + 38 * Math.sin(t)).toFixed(1)}" stroke="#ffc933" stroke-width="3" stroke-linecap="round"/>`; }
-    return `<svg class="illu" viewBox="0 0 320 190" role="img" aria-label="Le Soleil éclaire la Lune, qui renvoie la lumière vers l'œil">
-    ${sun}<circle cx="52" cy="52" r="22" fill="#ffc933"/>
-    <circle cx="262" cy="46" r="20" fill="#cfd6e4"/><circle cx="256" cy="40" r="4" fill="#aab3c5"/><circle cx="270" cy="52" r="5" fill="#aab3c5"/><circle cx="259" cy="56" r="2.5" fill="#aab3c5"/>
-    ${ray([92, 50], [238, 46], 'ray')}${ray([250, 68], [186, 138], 'ray')}
+    return `<svg class="illu src" viewBox="0 0 320 190" role="img" aria-label="Le Soleil éclaire la Lune, qui renvoie la lumière vers l'œil">
+    <g class="sunlight">${sun}</g><circle cx="52" cy="52" r="22" class="sun"/>
+    <g class="moon"><circle cx="262" cy="46" r="20" class="moonb"/><circle cx="256" cy="40" r="4" class="crat"/><circle cx="270" cy="52" r="5" class="crat"/><circle cx="259" cy="56" r="2.5" class="crat"/></g>
+    <g class="sunlight">${ray([92, 50], [238, 46], 'ray')}${ray([250, 68], [186, 138], 'ray')}
+    <circle r="4.5" class="photon"><animateMotion dur="3s" repeatCount="indefinite" path="M92,50 L238,46 L250,68 L186,138"/></circle></g>
     <path d="M140,150 Q168,128 196,150 Q168,172 140,150 Z" class="eye"/><circle cx="168" cy="150" r="9" class="iris"/><circle cx="168" cy="150" r="4" fill="#000"/>
     <text x="52" y="108" text-anchor="middle" class="nm">Soleil</text><text x="52" y="122" text-anchor="middle" class="med">source primaire</text>
-    <text x="262" y="92" text-anchor="middle" class="nm">Lune</text><text x="262" y="106" text-anchor="middle" class="med">objet diffusant</text>
+    <text x="316" y="86" text-anchor="end" class="nm">Lune</text><text x="316" y="100" text-anchor="end" class="med">objet diffusant</text>
     <text x="168" y="184" text-anchor="middle" class="med">l'œil reçoit la lumière</text>
     </svg>`;
 }
-function figOmbre() {
+function figOmbre(cx = 130) {
+    const r = 22, lx = 30, ly = 90, sx = 290, d = cx - lx, a = Math.asin(r / d), L = Math.sqrt(d * d - r * r);
+    const tx = lx + L * Math.cos(a), dy = L * Math.sin(a), h = (sx - lx) * Math.tan(a);
+    const y1 = Math.max(6, ly - h), y2 = Math.min(174, ly + h), f = v => v.toFixed(1);
+    const out = h < 70;
     return `<svg class="illu" viewBox="0 0 320 180" role="img" aria-label="Une source, un objet opaque et son ombre sur un écran">
-    <polygon points="125.2,68.5 290,31.4 290,148.6 125.2,111.5" class="shadow"/>
-    ${ray([30, 90], [290, 14], 'ray', 0.35)}${ray([30, 90], [290, 166], 'ray', 0.35)}
-    <line x1="30" y1="90" x2="125.2" y2="68.5" class="ray"/><line x1="30" y1="90" x2="125.2" y2="111.5" class="ray"/>
-    <line x1="125.2" y1="68.5" x2="290" y2="31.4" class="normale"/><line x1="125.2" y1="111.5" x2="290" y2="148.6" class="normale"/>
-    <circle cx="30" cy="90" r="9" fill="#ffc933"/>
-    <circle cx="130" cy="90" r="22" class="opaque"/>
-    <line x1="290" y1="6" x2="290" y2="174" class="dioptre"/><line x1="290" y1="31.4" x2="290" y2="148.6" stroke="#000" stroke-width="7"/>
-    <text x="30" y="118" text-anchor="middle" class="med">source</text><text x="130" y="134" text-anchor="middle" class="med">objet opaque</text>
-    <text x="222" y="94" text-anchor="middle" class="nm">zone d'ombre</text><text x="284" y="178" text-anchor="end" class="med">écran</text>
+    <polygon points="${f(tx)},${f(ly - dy)} ${sx},${f(y1)} ${sx},${f(y2)} ${f(tx)},${f(ly + dy)}" class="shadow"/>
+    ${out ? ray([lx, ly], [sx, 14], 'ray', 0.35) + ray([lx, ly], [sx, 166], 'ray', 0.35) : ''}
+    <line x1="${lx}" y1="${ly}" x2="${f(tx)}" y2="${f(ly - dy)}" class="ray"/><line x1="${lx}" y1="${ly}" x2="${f(tx)}" y2="${f(ly + dy)}" class="ray"/>
+    <line x1="${f(tx)}" y1="${f(ly - dy)}" x2="${sx}" y2="${f(y1)}" class="normale"/><line x1="${f(tx)}" y1="${f(ly + dy)}" x2="${sx}" y2="${f(y2)}" class="normale"/>
+    <circle cx="${lx}" cy="${ly}" r="9" fill="#ffc933"/>
+    <circle cx="${cx}" cy="${ly}" r="${r}" class="opaque"/>
+    <line x1="${sx}" y1="6" x2="${sx}" y2="174" class="dioptre"/><line x1="${sx}" y1="${f(y1)}" x2="${sx}" y2="${f(y2)}" stroke="#000" stroke-width="7"/>
+    <text x="${lx}" y="118" text-anchor="middle" class="med">source</text><text x="${cx}" y="${ly + 4}" text-anchor="middle" class="med" style="fill:#000">opaque</text>
+    <text x="${f((cx + sx) / 2 + 14)}" y="94" text-anchor="middle" class="nm">ombre</text><text x="284" y="178" text-anchor="end" class="med">écran</text>
     </svg>`;
 }
+/* Mascotte : un photon */
+function lumi(mood = 'ok') {
+    const mouth = mood === 'wow' ? '<ellipse cx="32" cy="40" rx="5" ry="6" fill="#3b2a00"/>' : '<path d="M23,37 Q32,47 41,37" fill="none" stroke="#3b2a00" stroke-width="2.6" stroke-linecap="round"/>';
+    let rays = '';
+    for (let k = 0; k < 8; k++) { const t = k * 45 * Math.PI / 180; rays += `<line x1="${(32 + 25 * Math.cos(t)).toFixed(1)}" y1="${(32 + 25 * Math.sin(t)).toFixed(1)}" x2="${(32 + 30 * Math.cos(t)).toFixed(1)}" y2="${(32 + 30 * Math.sin(t)).toFixed(1)}"/>`; }
+    return `<svg class="lumi" viewBox="0 0 64 64" aria-hidden="true"><g class="lumi-rays" stroke="#ffd84d" stroke-width="3" stroke-linecap="round">${rays}</g><circle cx="32" cy="32" r="20" fill="#ffd84d"/><circle cx="25" cy="28" r="3.2" fill="#3b2a00"/><circle cx="39" cy="28" r="3.2" fill="#3b2a00"/>${mouth}</svg>`;
+}
+function colorName(w) { return w < 400 ? 'ultraviolet' : w < 430 ? 'violet' : w < 490 ? 'bleu' : w < 570 ? 'vert' : w < 590 ? 'jaune' : w < 620 ? 'orange' : w <= 800 ? 'rouge' : 'infrarouge'; }
 function figSoleilTerre() {
     return `<svg class="illu" viewBox="0 0 320 96" role="img" aria-label="La lumière du Soleil met 8 minutes 20 secondes pour atteindre la Terre">
     <circle cx="30" cy="48" r="20" fill="#ffc933"/>

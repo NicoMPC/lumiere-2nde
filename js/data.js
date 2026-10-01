@@ -282,7 +282,7 @@ const EX = [
 { id: 'G2', t: 'G', lvl: 1, type: 'qcm', q: `On superpose une lumière rouge et une lumière verte sur un écran blanc. On voit du…`, opts: [`marron`, `jaune`, `cyan`, `blanc`], a: 1, hint: `Synthèse additive. Pense aux trois zones de recouvrement des cercles rouge, vert, bleu.`, corr: [`Synthèse additive : rouge + vert = <b>jaune</b>.`] },
 { id: 'G3', t: 'G', lvl: 2, type: 'qcm', q: `On regarde une tomate rouge à travers un filtre vert, en lumière blanche. La tomate paraît…`, opts: [`rouge`, `verte`, `jaune`, `noire`], a: 3, hint: `Quelle lumière la tomate envoie-t-elle ? Le filtre vert la laisse-t-il passer ?`, corr: [`La tomate diffuse du rouge.`, `Le filtre vert absorbe le rouge : rien ne passe → <b>noire</b>.`] }
 ];
-const BLANC = ['A2', 'B2', 'M1', 'C2', 'D1', 'D4', 'D6', 'E3', 'E5', 'E7'];
+const BLANC = ['A2', 'B2', 'M1', 'C2', 'D1', 'D4', 'E3', 'E7', 'L2', 'L7'];
 
 /* ============ CARTES MÉMOIRE ============ */
 const FL = [
@@ -317,7 +317,47 @@ const FL = [
 const PLAN = [
     [`Séance 1`, `Cours 1 à 4`, `Atelier « Puissances de 10 » + exercices Sources, Vitesse et Puissances`],
     [`Séance 2`, `Cours 5 à 7`, `Simulateur de réfraction (les 4 défis) + exercices Réflexion et Réfraction`],
-    [`Séance 3`, `Cours 8 à 11`, `Atelier « Spectres » (étoiles mystères) + exercices Spectres et Couleurs`],
+    [`Séance 3`, `Cours 8 à 12`, `Ateliers « Spectres » et « Banc d'optique » + exercices Spectres, Couleurs et Lentilles`],
     [`La veille`, `Méthodes + contrôle blanc`, `Refais uniquement les exercices marqués « à retravailler », puis les cartes mémoire`],
     [`Le matin`, `Fiche récap`, `2 minutes : la fiche, puis les 8 vérifications`]
 ];
+
+/* ============ COMPLÉMENTS ============ */
+const KEEP = {
+    sources: [`Source primaire : produit sa lumière. Objet diffusant : renvoie celle qu'il reçoit.`, `On voit un objet quand sa lumière entre dans l'œil.`],
+    rectiligne: [`Milieu transparent et homogène → ligne droite.`, `Un rayon = un trait droit avec une flèche.`],
+    vitesse: [`c = 3,00 × ${p10(8)} m/s.`, `v = d / t, avec d en m et t en s.`, `L'année-lumière est une distance.`],
+    puissances: [`× entre deux puissances → j'additionne les exposants.`, `Exposant sur une parenthèse → je multiplie les exposants.`, `Les nombres ensemble, les puissances ensemble.`],
+    vocabulaire: [`La normale est perpendiculaire à la surface, au point d'incidence.`, `Tous les angles se mesurent depuis la normale.`],
+    reflexion: [`r = i₁.`, `Angle donné avec la surface → 90° − cet angle.`],
+    refraction: [`n₁ × sin(i₁) = n₂ × sin(i₂).`, `Indice plus grand → le rayon se rapproche de la normale.`, `n est sans unité et toujours ≥ 1.`],
+    dispersion: [`La lumière blanche est un mélange de toutes les couleurs.`, `Violet : le plus dévié. Rouge : le moins dévié.`],
+    longueur: [`Visible : de 400 nm (violet) à 800 nm (rouge).`, `Avant 400 : UV. Après 800 : IR.`, `Monochromatique = une seule radiation.`],
+    spectres: [`Continu → corps chaud. Raies colorées sur fond noir → gaz qui émet. Raies noires → gaz qui absorbe.`, `Plus chaud → plus de violet.`, `Un élément est présent si toutes ses raies sont là.`],
+    couleurs: [`Rouge + vert + bleu = blanc.`, `Un filtre transmet sa couleur et absorbe le reste.`, `Un objet qui ne reçoit pas sa couleur paraît noir.`]
+};
+THEMES.O = { nom: `Méthode : l'ordre des étapes`, short: 'Méthode' };
+EX.push(
+{ id: 'B8', t: 'B', lvl: 2, type: 'qcm', q: `Pour calculer le temps mis par la lumière pour parcourir 150 millions de km, un élève écrit :<br>t = 150 000 000 ÷ (3,00 × ${p10(8)}) = 0,5 s.<br>Où est l'erreur ?`, opts: [`La distance n'a pas été convertie en mètres`, `Il fallait multiplier au lieu de diviser`, `La valeur de c est fausse`, `Il n'y a pas d'erreur`], a: 0, hint: `Regarde l'unité de chaque nombre avant le calcul.`, corr: [`c est en m/s : la distance doit être en mètres.`, `150 millions de km = 1,5 × ${p10(11)} m.`, `t = ${F(`1,5 × ${p10(11)}`, `3,00 × ${p10(8)}`)} = <b>500 s</b>, et non 0,5 s.`] },
+{ id: 'M7', t: 'M', lvl: 2, type: 'qcm', q: `Un élève écrit : (${p10(3)})<sup>2</sup> = ${p10(5)}. Quelle règle a-t-il utilisée à tort ?`, opts: [`Celle de deux puissances qui se multiplient (addition des exposants)`, `Celle de la division (soustraction des exposants)`, `Aucune, son résultat est juste`, `Celle de l'écriture scientifique`], a: 0, hint: `Comment obtient-on 5 à partir de 3 et de 2 ?`, corr: [`3 + 2 = 5 : il a additionné, comme pour ${p10(3)} × ${p10(2)}.`, `Ici l'exposant est posé sur une parenthèse → on multiplie : 3 × 2 = 6.`, `(${p10(3)})<sup>2</sup> = <b>${p10(6)}</b>.`] },
+{ id: 'D11', t: 'D', lvl: 3, type: 'qcm', q: `Air → eau (n = 1,33), i₁ = 40°. Un élève écrit :<br>sin(i₂) = sin(40°) ÷ 1,33 = sin(30°), donc i₂ = 30°.<br>Où est l'erreur ?`, opts: [`Il a divisé l'angle par 1,33 au lieu de diviser le sinus`, `Il a inversé n₁ et n₂`, `Il a oublié l'unité de l'indice`, `Il n'y a pas d'erreur`], a: 0, hint: `sin(40°) ÷ 1,33, est-ce la même chose que sin(40° ÷ 1,33) ?`, corr: [`On ne « rentre » pas une division dans un sinus.`, `sin(40°) = 0,643, puis 0,643 ÷ 1,33 = 0,483.`, `i₂ = sin<sup>−1</sup>(0,483) = <b>29°</b>, pas 30°.`] },
+{ id: 'O1', t: 'O', lvl: 1, type: 'order', q: `Remets dans l'ordre les étapes de la rédaction d'un calcul.`, items: [`Recopier les données avec leurs unités`, `Convertir dans les bonnes unités`, `Écrire la formule avec des lettres`, `Remplacer les lettres par les nombres`, `Écrire le résultat avec son unité`, `Vérifier que c'est plausible`], hint: `On ne calcule jamais avant d'avoir converti, et on n'écrit jamais de nombres avant la formule.` },
+{ id: 'O2', t: 'O', lvl: 2, type: 'order', q: `Remets dans l'ordre les étapes pour calculer un angle de réfraction i₂.`, items: [`Repérer n₁ (d'où vient la lumière) et n₂`, `Écrire n₁ × sin(i₁) = n₂ × sin(i₂)`, `Isoler sin(i₂)`, `Calculer la valeur de sin(i₂)`, `Utiliser sin⁻¹ pour obtenir i₂`, `Vérifier le sens de la déviation`], hint: `On étiquette, on écrit la loi, on isole, on calcule, on repasse à l'angle, on vérifie.` },
+{ id: 'O3', t: 'O', lvl: 1, type: 'order', q: `Remets dans l'ordre les étapes pour tracer un rayon réfléchi.`, items: [`Repérer le point d'incidence I`, `Tracer la normale en pointillés`, `Mesurer l'angle d'incidence depuis la normale`, `Reporter le même angle de l'autre côté de la normale`, `Tracer le rayon réfléchi avec sa flèche`], hint: `La normale se trace avant tout le reste.` },
+{ id: 'O4', t: 'O', lvl: 1, type: 'order', q: `Remets dans l'ordre les étapes pour savoir si un élément est présent dans un spectre.`, items: [`Lire la longueur d'onde de chaque raie du spectre`, `Comparer avec les raies de l'élément donné`, `Vérifier que TOUTES ses raies sont présentes`, `Conclure par une phrase`], hint: `On lit d'abord, on compare ensuite.` }
+);
+
+/* Indices des questions de cours (ne donnent jamais la réponse) */
+const QH = {
+    sources: `Imagine la pièce plongée dans le noir total : lequel de ces objets continuerait à briller ?`,
+    rectiligne: `Il faut deux conditions : la lumière doit pouvoir traverser le milieu, et ce milieu doit être le même partout.`,
+    vitesse: `Complète la phrase : « c'est ce que la lumière parcourt en un an ». On parcourt… quoi ?`,
+    puissances: `Range d'abord : les nombres ensemble, les puissances ensemble. Puis regarde quel signe relie les deux puissances.`,
+    vocabulaire: `Elle forme un angle droit avec quelque chose, et elle passe par l'endroit où le rayon touche la surface.`,
+    reflexion: `La loi de la réflexion relie r et i₁ par une simple égalité.`,
+    refraction: `Compare les deux indices : la lumière entre-t-elle dans un milieu d'indice plus grand ou plus petit ?`,
+    dispersion: `Regarde le schéma du prisme en haut du chapitre : compare la direction de chaque couleur avec celle du rayon blanc.`,
+    longueur: `Situe ce nombre par rapport aux deux bornes du visible : 400 et 800.`,
+    spectres: `Regarde le fond. Un fond noir signifie que la source n'envoie que quelques radiations.`,
+    couleurs: `Quelle couleur cet objet sait-il diffuser ? Est-elle présente dans la lumière qui l'éclaire ?`
+};
