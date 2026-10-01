@@ -324,3 +324,5 @@ details.rc .steps-l { padding-left: 40px; }
     .ref { grid-template-columns: 1fr; gap: 0; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } .beam, .fan { stroke-dashoffset: 0; } }
+.tbl:not(.left) td { white-space: nowrap; }
+@media (max-width: 480px) { .tbl:not(.left) th, .tbl:not(.left) td { padding: 8px 6px; font-size: .88rem; } }
