@@ -14,7 +14,7 @@ const DEFIS = [
     { id: 'star', txt: `Identifie 3 étoiles mystères (atelier Spectres).` },
     { id: 'pow', txt: `Enchaîne 5 bonnes réponses de suite (atelier Puissances).` }
 ].concat(window.EXTRA_DEFIS || []);
-const BLANK = () => ({ read: {}, quick: {}, ex: {}, fl: {}, lab: {}, plan: {}, check: {}, best: null, powBest: 0, star: 0, guide: 0, express: 0, theme: 'dark', last: '', days: {}, daily: {}, badges: {}, run: null, hadRetry: false, exam: '2026-10-06' });
+const BLANK = () => ({ read: {}, quick: {}, ex: {}, fl: {}, lab: {}, plan: {}, check: {}, best: null, powBest: 0, star: 0, guide: 0, express: 0, theme: 'light', last: '', days: {}, daily: {}, badges: {}, run: null, hadRetry: false, exam: '2026-10-06' });
 let S = BLANK();
 try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && typeof d === 'object') S = Object.assign(S, d); } catch (e) { /* stockage indisponible : le site marche quand même */ }
 
