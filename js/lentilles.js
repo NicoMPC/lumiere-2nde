@@ -172,7 +172,7 @@ CH.push({
       <tr><td>cornée et cristallin</td><td><b>lentille convergente</b></td><td>forme l'image</td></tr>
       <tr><td>rétine</td><td><b>écran</b></td><td>reçoit l'image</td></tr></table>
     <div class="def"><b>Modèle de l'œil réduit</b> : un diaphragme, une lentille convergente et un écran. L'image se forme sur la rétine : elle est réelle et renversée. C'est le cerveau qui la remet à l'endroit.</div>
-    <p><a class="btn ghost" href="#atelier/lentille">Déplacer l'objet sur le banc d'optique →</a></p>`,
+    <p><a class="btn ghost" href="#atelier/lentille">Déplacer l'objet et voir l'image se construire →</a></p>`,
     quick: { q: `Un rayon arrive sur une lentille convergente parallèlement à l'axe optique. Après la lentille, il…`, opts: [`passe par le foyer image F′`, `continue tout droit`, `passe par le foyer objet F`, `repart en arrière`], a: 0, why: `Parallèle à l'axe avant la lentille → il passe par F′ après. C'est la définition du foyer image.` }
 });
 
@@ -236,9 +236,8 @@ function labLentille() {
       <label class="rng">Distance objet–lentille OA = <b id="lz-oav"></b><input type="range" id="lz-oa" min="65" max="200" step="1" value="150"></label>
       <div class="readout" id="lz-out"></div></div>
     <div class="card"><h3>Le grandissement, en direct</h3><div id="lz-calc" class="calc"></div></div>
-    <div class="card"><h3>Défi</h3><ul class="defis" id="lz-defi"></ul><details class="hintd"><summary>Indice</summary><p>Regarde OA et OA′ dans les valeurs affichées : γ = OA′ ÷ OA. Que faut-il pour que ce quotient vaille 1 ?</p></details></div>`;
+`;
     const rg = $('#lz-oa');
-    const defi = () => $('#lz-defi').innerHTML = `<li class="${won() ? 'ok' : ''}">Trouve la position où l'image a exactement la même taille que l'objet.</li>`;
     function u(user) {
         const oa = +rg.value / 10, k = oa / FP, g = 1 / (k - 1), oi = oa * g, ab2 = AB * g;
         $('#lz-fig').innerHTML = figLens({ k });
@@ -252,9 +251,8 @@ function labLentille() {
         $('#lz-calc').innerHTML = `<div>γ = ${F('A′B′', 'AB')} = ${F(fr(ab2, 2), fr(AB, 1))} ≈ <b>${fr(g, 2)}</b></div>
           <div>γ = ${F('OA′', 'OA')} = ${F(fr(oi, 2), fr(oa, 1))} ≈ <b>${fr(g, 2)}</b> <span class="hintline">Thalès : les deux fractions sont égales</span></div>
           <div>${g > 1.03 ? 'γ &gt; 1 : image agrandie.' : g < 0.97 ? 'γ &lt; 1 : image réduite.' : 'γ = 1 : image de même taille que l\'objet.'} Dans tous les cas, elle est renversée.</div>`;
-        if (user && same && winDefi('lens')) defi();
     }
-    rg.oninput = () => u(true); defi(); u(false);
+    rg.oninput = () => u(true); u(false);
 }
 (window.EXTRA_LABS = window.EXTRA_LABS || []).push({ k: 'lentille', title: 'Banc d\'optique', d: 'Déplace l\'objet devant la lentille, l\'image et le grandissement suivent', fn: labLentille });
 (window.EXTRA_DEFIS = window.EXTRA_DEFIS || []).push({ id: 'lens', txt: `Trouve la position où l'image a exactement la même taille que l'objet (atelier Banc d'optique).` });

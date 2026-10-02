@@ -13,11 +13,11 @@ const MILIEUX = [['air', 1.00], ['eau', 1.33], ['verre', 1.50], ['diamant', 2.42
 /* ============ COURS ============ */
 const CH = [
 {
-    id: 'sources', title: `D'où vient la lumière`, sub: 'Sources primaires et objets diffusants',
+    id: 'sources', title: `D'où vient la lumière`, sub: 'Sources primaires et sources secondaires',
     html: () => `
     <div class="fig">${figSources()}</div>
     <div class="def"><b>Source primaire</b> : elle <u>fabrique</u> sa lumière.<br><span class="eg">Soleil, étoile, flamme, lampe allumée, écran.</span></div>
-    <div class="def"><b>Objet diffusant</b> (source secondaire) : il ne fabrique rien, il <u>renvoie</u> dans toutes les directions la lumière qu'il reçoit.<br><span class="eg">Lune, planète, feuille de papier, mur.</span></div>
+    <div class="def"><b>Source secondaire</b> (ou objet diffusant) : elle ne fabrique rien, elle <u>renvoie</u> dans toutes les directions la lumière qu'elle reçoit.<br><span class="eg">Lune, planète, feuille de papier, mur.</span></div>
     <p><b>Pour voir un objet</b>, il faut que de la lumière partie de cet objet <u>entre dans ton œil</u>. La lumière va de l'objet vers l'œil, jamais l'inverse.</p>
     <div class="trap">La Lune brille, mais elle n'est <b>pas</b> une source primaire : éteins le Soleil, elle disparaît.</div>`,
     quick: { q: `Lequel est une source primaire ?`, opts: [`La Lune`, `Un miroir`, `Une flamme de bougie`, `Une feuille blanche`], a: 2, why: `La flamme fabrique sa lumière. Les trois autres ne font que renvoyer celle qu'ils reçoivent.` }
@@ -36,7 +36,7 @@ const CH = [
     id: 'vitesse', title: `À quelle vitesse`, sub: 'c, v = d / t et l\'année-lumière',
     html: () => `
     <div class="formula">c = 3,00 × ${p10(8)} m/s<small>vitesse de la lumière dans le vide (et dans l'air, quasiment pareil). Par cœur.</small></div>
-    <p>C'est 300 000 km chaque seconde. Rien ne va plus vite. Dans l'eau ou le verre, la lumière est <b>plus lente</b>.</p>
+    <p>On l'appelle la <b>vitesse de propagation</b> de la lumière (ou célérité). C'est 300 000 km chaque seconde. Rien ne va plus vite. Dans l'eau ou le verre, la lumière est <b>plus lente</b>.</p>
     <div class="formula">v = ${F('d', 't')}<small>v en m/s &nbsp;·&nbsp; d en m &nbsp;·&nbsp; t en s</small></div>
     <div class="tri">
       <div><span>Je cherche la vitesse</span><b>v = ${F('d', 't')}</b></div>
@@ -75,7 +75,7 @@ const CH = [
     </div>
     <div class="exb">Le calcul type du contrôle : t = ${F(`1,5 × ${p10(11)}`, `3 × ${p10(8)}`)} = ${F('1,5', '3')} × ${F(p10(11), p10(8))} = 0,5 × ${p10(3)} = 500 s</div>
     <div class="trap">(${p10(2)})<sup>3</sup> n'est pas ${p10(5)}, et ${p10(2)} × ${p10(3)} n'est pas ${p10(6)}. Si tu hésites, écris les zéros.</div>
-    <p><a class="btn ghost" href="#atelier/puissances">S'entraîner dans l'atelier →</a></p>`,
+    <p><a class="btn ghost" href="#atelier/puissances">S'entraîner sur des calculs →</a></p>`,
     quick: { q: `(2 × ${p10(2)}) × (2 × ${p10(4)}) = ?`, opts: [`2 × ${p10(6)}`, `4 × ${p10(8)}`, `4 × ${p10(6)}`, `4 × ${p10(2)}`], a: 2, why: `Nombres ensemble : 2 × 2 = 4. Puissances ensemble : ${p10(2)} × ${p10(4)} = 10<sup>2+4</sup> = ${p10(6)}.` }
 },
 {
@@ -91,7 +91,8 @@ const CH = [
       <tr><td><b>Rayon réfracté</b></td><td>Le rayon qui <u>traverse</u> et passe dans le milieu 2.</td></tr>
       <tr><td><b>i₁, r, i₂</b></td><td>Angle d'incidence, de réflexion, de réfraction.</td></tr>
     </table>
-    <div class="trap">Les angles se mesurent <b>toujours entre le rayon et la NORMALE</b>, jamais entre le rayon et la surface.<br>Si l'énoncé donne l'angle avec la surface (ex : 50°), l'angle d'incidence vaut 90° − 50° = 40°.</div>`,
+    <div class="trap">Les angles se mesurent <b>toujours entre le rayon et la NORMALE</b>, jamais entre le rayon et la surface.<br>Si l'énoncé donne l'angle avec la surface (ex : 50°), l'angle d'incidence vaut 90° − 50° = 40°.</div>
+    <p><a class="btn ghost" href="#atelier/schema">S'entraîner à repérer chaque élément →</a></p>`,
     quick: { q: `La normale, c'est…`, opts: [`la surface de séparation`, `la droite perpendiculaire à la surface au point d'incidence`, `le rayon qui arrive`, `une droite parallèle à la surface`], a: 1, why: `Perpendiculaire à la surface, et elle passe par le point d'incidence I.` }
 },
 {
@@ -110,7 +111,7 @@ const CH = [
     id: 'refraction', title: `La réfraction`, sub: 'La lumière change de direction en changeant de milieu',
     html: () => `
     <div class="def"><b>Réfraction</b> : changement de direction de la lumière quand elle passe d'un milieu transparent à un autre.</div>
-    <div class="def"><b>Indice de réfraction n</b> : un nombre <u>sans unité</u> qui caractérise un milieu transparent. Toujours n ≥ 1. Plus n est grand, plus la lumière y est ralentie.</div>
+    <div class="def"><b>Indice optique n</b> (aussi appelé indice de réfraction) : un nombre <u>sans unité</u> qui caractérise un milieu transparent. Toujours n ≥ 1. Plus n est grand, plus la lumière y est ralentie.</div>
     <table class="tbl"><tr><th>Milieu</th><th>vide</th><th>air</th><th>eau</th><th>verre</th><th>diamant</th></tr>
       <tr><th>n</th><td>1</td><td>1,00</td><td>1,33</td><td>≈ 1,5</td><td>2,42</td></tr></table>
     <div class="def"><b>Lois de Snell-Descartes pour la réfraction</b><br>
@@ -124,7 +125,7 @@ const CH = [
     <p>Cas particulier : un rayon qui arrive <b>sur la normale</b> (i₁ = 0°) n'est <b>pas dévié</b>.</p>
     <div class="formula">n = ${F('c', 'v')}<small>le lien entre l'indice et la vitesse v de la lumière dans le milieu</small></div>
     <div class="exb">Une paille dans un verre d'eau paraît cassée : les rayons venant de la partie immergée sont déviés en sortant de l'eau, donc l'œil ne la voit pas à sa vraie place.</div>
-    <p><a class="btn ghost" href="#atelier/refraction">Faire bouger le rayon dans l'atelier →</a></p>`,
+    <p><a class="btn ghost" href="#atelier/refraction">Faire bouger le rayon →</a> <a class="btn ghost" href="#atelier/guide">Calculer i₂ pas à pas →</a></p>`,
     quick: { q: `La lumière passe du verre (n = 1,5) à l'air (n = 1,00). Le rayon réfracté…`, opts: [`se rapproche de la normale`, `s'écarte de la normale`, `n'est jamais dévié`, `repart en arrière`], a: 1, why: `Elle entre dans un milieu d'indice plus petit → le rayon s'écarte de la normale (i₂ > i₁).` }
 },
 {
@@ -132,7 +133,7 @@ const CH = [
     html: () => `
     <div class="fig">${figPrisme()}</div>
     <div class="def"><b>Lumière blanche</b> : un mélange de <u>toutes</u> les couleurs (Soleil, lampe à filament).</div>
-    <div class="def"><b>Dispersion</b> : séparation des couleurs de la lumière. Un <b>prisme</b> ou un <b>réseau</b> la réalise.</div>
+    <div class="def"><b>Dispersion</b> : séparation des couleurs de la lumière. Un <b>prisme</b> ou un <b>réseau</b> la réalise : ce sont des <b>systèmes dispersifs</b>.</div>
     <p><b>Pourquoi ça marche ?</b> L'indice du verre n'est pas exactement le même pour chaque couleur. Chaque couleur est donc réfractée d'un angle différent, à l'entrée puis à la sortie du prisme.</p>
     <div class="def">Le <b style="color:#b98cff">violet</b> est le <b>plus dévié</b>. Le <b style="color:#ff6b6b">rouge</b> est le <b>moins dévié</b>.</div>
     <div class="exb">L'arc-en-ciel : chaque goutte de pluie se comporte comme un petit prisme.</div>`,
@@ -141,7 +142,7 @@ const CH = [
 {
     id: 'longueur', title: `Longueur d'onde et spectre visible`, sub: 'De 400 nm à 800 nm',
     html: () => `
-    <div class="def"><b>Radiation</b> : une lumière d'une seule couleur « pure ». Elle est repérée par sa <b>longueur d'onde λ</b> (lambda), en <b>nanomètres</b> : 1 nm = ${p10(-9)} m.</div>
+    <div class="def"><b>Radiation</b> (ou rayonnement monochromatique) : une lumière d'une seule couleur « pure ». Elle est repérée par sa <b>longueur d'onde λ</b> (lambda), en <b>nanomètres</b> : 1 nm = ${p10(-9)} m.</div>
     <div class="def"><b>Monochromatique</b> : une seule radiation (ex : laser).<br><b>Polychromatique</b> : plusieurs radiations (ex : lumière blanche).</div>
     <div class="def"><b>Spectre</b> : l'image obtenue quand on a séparé les radiations d'une lumière.</div>
     <div class="fig">${spectrum({ title: 'spectre de la lumière blanche de 400 à 800 nanomètres' })}
@@ -153,18 +154,19 @@ const CH = [
 {
     id: 'spectres', title: `Les types de spectres`, sub: 'Continu, raies d\'émission, raies d\'absorption',
     html: () => `
-    <div class="spec-card"><h4>Spectre continu</h4>${spectrum({ axis: false })}<p>Bande colorée <b>sans interruption</b>. Produit par un corps <b>chaud</b> et dense : filament de lampe, braise. La surface d'une étoile aussi, mais son atmosphère y ajoute des raies noires (voir plus bas).</p></div>
+    <div class="spec-card"><h4>Spectre continu</h4>${spectrum({ axis: false })}<p>Bande colorée <b>sans interruption</b>, d'<b>origine thermique</b>. Produit par un corps <b>chaud</b> et dense : filament de lampe, braise. La surface d'une étoile aussi, mais son atmosphère y ajoute des raies noires (voir plus bas).</p></div>
     <div class="spec-card"><h4>Spectre de raies d'émission</h4>${spectrum({ mode: 'emission', lines: GAZ.H.raies, axis: false })}<p><b>Traits colorés sur fond noir</b>. Produit par un <b>gaz</b> à basse pression, chauffé ou excité électriquement (lampe à hydrogène, à sodium, néon).</p></div>
     <div class="spec-card"><h4>Spectre de raies d'absorption</h4>${spectrum({ mode: 'absorption', lines: GAZ.H.raies })}<p><b>Fond coloré avec des traits noirs</b>. De la lumière blanche qui a <b>traversé un gaz</b> : le gaz a retiré certaines radiations.</p></div>
     <div class="def"><b>Idée 1 — la température.</b> Plus un corps est chaud, plus son spectre continu s'enrichit <u>vers le violet</u>. Un corps peu chaud émet surtout du rouge. Une étoile bleue est plus chaude qu'une étoile rouge.</div>
     <div class="def"><b>Idée 2 — la carte d'identité.</b> Chaque élément chimique a ses propres raies, toujours aux mêmes longueurs d'onde. Et un gaz <u>absorbe exactement les radiations qu'il sait émettre</u> : regarde, les raies noires sont aux mêmes endroits que les raies colorées.</div>
     <div class="exb">L'hydrogène a des raies à 410, 434, 486 et 656 nm. Si on retrouve ces quatre raies dans le spectre d'une étoile, il y a de l'hydrogène dans son atmosphère.</div>
-    <p><a class="btn ghost" href="#atelier/spectres">Jouer avec les spectres dans l'atelier →</a></p>`,
+    <p><a class="btn ghost" href="#atelier/spectres">Manipuler les spectres →</a></p>`,
     quick: { q: `Des traits colorés sur un fond noir, c'est un spectre…`, opts: [`continu`, `de raies d'émission`, `de raies d'absorption`, `de lumière blanche`], a: 1, why: `Fond noir + raies colorées = émission (un gaz excité). Fond coloré + raies noires = absorption.` }
 },
 {
-    id: 'couleurs', title: `Couleurs, filtres et objets`, sub: 'Ce qui est transmis, diffusé, absorbé',
+    id: 'couleurs', title: `Couleurs, filtres et objets`, sub: 'Complément : filtres et objets colorés',
     html: () => `
+    <div class="compl">Complément. Ce chapitre ne figure pas dans le programme officiel de 2nde, mais certains professeurs le traitent. Vérifie dans ton cours s'il te concerne.</div>
     <div class="fig">${figRGB()}</div>
     <div class="def"><b>Synthèse additive</b> (on superpose des lumières) : rouge + vert + bleu = <b>blanc</b>.<br>rouge + vert = jaune &nbsp;·&nbsp; rouge + bleu = magenta &nbsp;·&nbsp; vert + bleu = cyan.</div>
     <div class="fig">${figFiltre()}</div>
@@ -231,7 +233,7 @@ const THEMES = {
 const EX = [
 /* A — sources */
 { id: 'A1', t: 'A', lvl: 1, type: 'qcm', q: `Parmi ces objets, lequel est une source primaire de lumière ?`, opts: [`Un écran de téléphone allumé`, `La Lune`, `Un miroir`, `Un mur blanc`], a: 0, hint: `Lequel fabrique lui-même sa lumière ?`, corr: [`Une source primaire produit sa propre lumière.`, `L'écran allumé en produit. La Lune, le miroir et le mur renvoient seulement celle qu'ils reçoivent.`] },
-{ id: 'A2', t: 'A', lvl: 1, type: 'qcm', q: `Pourquoi voit-on la Lune la nuit ?`, opts: [`Elle produit sa propre lumière`, `Notre œil envoie de la lumière vers elle`, `Elle diffuse vers nous la lumière du Soleil`, `Elle réfléchit la lumière de la Terre uniquement`], a: 2, hint: `La Lune est-elle une source primaire ? D'où vient alors la lumière ?`, corr: [`La Lune est un objet diffusant.`, `Elle reçoit la lumière du Soleil et en renvoie une partie vers nos yeux.`] },
+{ id: 'A2', t: 'A', lvl: 1, type: 'qcm', q: `Pourquoi voit-on la Lune la nuit ?`, opts: [`Elle produit sa propre lumière`, `Notre œil envoie de la lumière vers elle`, `Elle diffuse vers nous la lumière du Soleil`, `Elle réfléchit la lumière de la Terre uniquement`], a: 2, hint: `La Lune est-elle une source primaire ? D'où vient alors la lumière ?`, corr: [`La Lune est une source secondaire.`, `Elle reçoit la lumière du Soleil et en renvoie une partie vers nos yeux.`] },
 { id: 'A3', t: 'A', lvl: 1, type: 'qcm', q: `Complète : « Dans un milieu … , la lumière se propage en ligne droite. »`, opts: [`opaque et homogène`, `transparent et homogène`, `transparent et coloré`, `quelconque`], a: 1, hint: `Deux adjectifs : la lumière doit pouvoir passer, et le milieu doit être le même partout.`, corr: [`Principe de propagation rectiligne : milieu <b>transparent</b> et <b>homogène</b>.`] },
 { id: 'A4', t: 'A', lvl: 1, type: 'qcm', q: `On observe une étoile située à 50 années-lumière. On la voit…`, opts: [`telle qu'elle est aujourd'hui`, `telle qu'elle sera dans 50 ans`, `telle qu'elle était il y a 50 ans`, `50 fois plus petite qu'en réalité`], a: 2, hint: `Combien de temps sa lumière a-t-elle mis pour arriver ?`, corr: [`Sa lumière a voyagé pendant 50 ans.`, `Ce qu'on reçoit aujourd'hui est donc parti il y a 50 ans : on la voit dans le passé.`] },
 /* B — vitesse */
@@ -287,7 +289,7 @@ const BLANC = ['A2', 'B2', 'M1', 'C2', 'D1', 'D4', 'E3', 'E7', 'L2', 'L7'];
 /* ============ CARTES MÉMOIRE ============ */
 const FL = [
 [`Source primaire ?`, `Un objet qui <b>produit</b> sa propre lumière. Soleil, flamme, lampe allumée.`],
-[`Objet diffusant ?`, `Un objet qui <b>renvoie</b> dans toutes les directions la lumière qu'il reçoit. Lune, feuille, mur.`],
+[`Source secondaire ?`, `Un objet qui <b>renvoie</b> dans toutes les directions la lumière qu'il reçoit. Lune, feuille, mur.`],
 [`Condition pour voir un objet ?`, `De la lumière venant de cet objet doit <b>entrer dans l'œil</b>.`],
 [`Énonce la propagation rectiligne.`, `Dans un milieu <b>transparent et homogène</b>, la lumière se propage en ligne droite.`],
 [`Valeur de c ?`, `c = 3,00 × ${p10(8)} m/s (vide et air).`],
@@ -300,7 +302,7 @@ const FL = [
 [`Par rapport à quoi mesure-t-on les angles ?`, `Toujours par rapport à la <b>normale</b>.`],
 [`Loi de la réflexion ?`, `r = i₁ (et les rayons sont dans le même plan que la normale).`],
 [`Loi de Snell-Descartes pour la réfraction ?`, `n₁ × sin(i₁) = n₂ × sin(i₂)`],
-[`Indice de réfraction : unité ? valeur minimale ?`, `<b>Sans unité</b>. Toujours ≥ 1. Air : 1,00 · eau : 1,33 · verre : ≈ 1,5.`],
+[`Indice optique n : unité ? valeur minimale ?`, `<b>Sans unité</b>. Toujours ≥ 1. Air : 1,00 · eau : 1,33 · verre : ≈ 1,5.`],
 [`La lumière entre dans un milieu d'indice plus grand. Le rayon…`, `…<b>se rapproche</b> de la normale (i₂ &lt; i₁).`],
 [`Lien entre indice et vitesse ?`, `n = c / v`],
 [`Dispersion ?`, `Séparation des couleurs de la lumière blanche, par un prisme ou un réseau.`],
@@ -324,7 +326,7 @@ const PLAN = [
 
 /* ============ COMPLÉMENTS ============ */
 const KEEP = {
-    sources: [`Source primaire : produit sa lumière. Objet diffusant : renvoie celle qu'il reçoit.`, `On voit un objet quand sa lumière entre dans l'œil.`],
+    sources: [`Source primaire : produit sa lumière. Source secondaire : renvoie celle qu'elle reçoit.`, `On voit un objet quand sa lumière entre dans l'œil.`],
     rectiligne: [`Milieu transparent et homogène → ligne droite.`, `Un rayon = un trait droit avec une flèche.`],
     vitesse: [`c = 3,00 × ${p10(8)} m/s.`, `v = d / t, avec d en m et t en s.`, `L'année-lumière est une distance.`],
     puissances: [`× entre deux puissances → j'additionne les exposants.`, `Exposant sur une parenthèse → je multiplie les exposants.`, `Les nombres ensemble, les puissances ensemble.`],

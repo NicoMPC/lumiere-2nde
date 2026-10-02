@@ -459,3 +459,18 @@ main.in { animation: pagein .26s ease-out; }
 .solo { color: var(--warm); font-weight: 600; font-size: .85rem; white-space: nowrap; }
 
 @media (max-width: 780px) { main { padding-bottom: 160px !important; } }
+
+/* ---- v3 : calculatrice dans la barre d'onglets, chapitre complément ---- */
+#calcFab { display: none !important; }
+.tabs button { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 10px; color: var(--muted); background: none; border: 0; font-size: .9rem; font-weight: 500; }
+.compl { border: 1px dashed var(--muted); border-radius: 12px; padding: 10px 14px; margin: 12px 0; font-size: .9rem; color: var(--muted); }
+@media (max-width: 780px) {
+    .tabs button { flex-direction: column; gap: 2px; font-size: .68rem; padding: 6px 4px; flex: 1; min-width: 0; }
+    main { padding-bottom: 104px !important; }
+}
+@media (max-width: 420px) {
+    .tbl { font-size: .82rem; }
+    .tbl th, .tbl td, .tbl:not(.left) th, .tbl:not(.left) td { padding: 6px 3px; font-size: .8rem; }
+    .tbl.left td { overflow-wrap: anywhere; }
+    .tbl.left td:first-child { white-space: normal; }
+}

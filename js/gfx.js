@@ -126,7 +126,7 @@ function figSources() {
     <circle r="4.5" class="photon"><animateMotion dur="3s" repeatCount="indefinite" path="M92,50 L238,46 L250,68 L186,138"/></circle></g>
     <path d="M140,150 Q168,128 196,150 Q168,172 140,150 Z" class="eye"/><circle cx="168" cy="150" r="9" class="iris"/><circle cx="168" cy="150" r="4" fill="#000"/>
     <text x="52" y="108" text-anchor="middle" class="nm">Soleil</text><text x="52" y="122" text-anchor="middle" class="med">source primaire</text>
-    <text x="316" y="86" text-anchor="end" class="nm">Lune</text><text x="316" y="100" text-anchor="end" class="med">objet diffusant</text>
+    <text x="316" y="86" text-anchor="end" class="nm">Lune</text><text x="316" y="100" text-anchor="end" class="med">source secondaire</text>
     <text x="168" y="184" text-anchor="middle" class="med">l'œil reçoit la lumière</text>
     </svg>`;
 }

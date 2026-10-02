@@ -496,15 +496,15 @@ rnd => {
     };
 },
 
-/* 14 — source primaire ou objet diffusant */
+/* 14 — source primaire ou source secondaire */
 rnd => {
     const [nom, prim, why] = gPick(rnd, G_SOURCES);
     return {
         gen: true, t: 'A', lvl: 1, type: 'qcm', fixed: true, a: prim ? 0 : 1,
-        q: `${nom} : source primaire ou objet diffusant ?`,
-        opts: [`Source primaire`, `Objet diffusant`],
+        q: `${nom} : source primaire ou source secondaire ?`,
+        opts: [`Source primaire`, `Source secondaire`],
         hint: `Imagine cet objet dans le noir complet, sans aucune autre lumière autour. Le verrais-tu encore ?`,
-        corr: [why, prim ? `C'est une <b>source primaire</b>.` : `C'est un <b>objet diffusant</b>.`]
+        corr: [why, prim ? `C'est une <b>source primaire</b>.` : `C'est une <b>source secondaire</b>.`]
     };
 }
 ];

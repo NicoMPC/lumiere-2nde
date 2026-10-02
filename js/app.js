@@ -41,13 +41,12 @@ function write() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (
 function save() { S.days[dayNum()] = 1; if (retryList().length) S.hadRetry = true; write(); progress(); }
 function stats() {
     return {
-        cours: [CH.reduce((n, c) => n + (S.read[c.id] ? 1 : 0) + (S.quick[c.id] ? 1 : 0), 0), CH.length * 2],
+        cours: [CH.filter(c => S.quick[c.id]).length, CH.length],
         exos: [nOk(), EX.length],
-        flash: [FL.filter((f, i) => flKnown(i)).length, FL.length],
-        lab: [DEFIS.filter(d => S.lab[d.id]).length, DEFIS.length]
+        flash: [FL.filter((f, i) => flKnown(i)).length, FL.length]
     };
 }
-function pctAll() { const s = stats(); return Math.round(100 * (s.cours[0] + s.exos[0] + s.flash[0] + s.lab[0]) / (s.cours[1] + s.exos[1] + s.flash[1] + s.lab[1])); }
+function pctAll() { const s = stats(); return Math.round(100 * (s.cours[0] + s.exos[0] + s.flash[0]) / (s.cours[1] + s.exos[1] + s.flash[1])); }
 function progress() { const p = pctAll(); $('#globalBar').style.width = p + '%'; $('#globalPct').textContent = p + ' %'; }
 function daysLeft() {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(S.exam || ''); if (!m) return null;
@@ -55,7 +54,9 @@ function daysLeft() {
     const d = Math.round((new Date(+m[1], +m[2] - 1, +m[3]) - t) / 864e5); return d < 0 ? null : d;
 }
 function applyTheme() { document.documentElement.dataset.theme = S.theme; $('meta[name=theme-color]').content = S.theme === 'dark' ? '#0b1020' : '#f5f6fb'; }
-const crumb = (href, label, here) => `<div class="crumb"><a href="#${href}">← ${label}</a><span>›</span>${here}</div>`;
+const LABCH = { puissances: 'puissances', schema: 'vocabulaire', refraction: 'refraction', guide: 'refraction', spectres: 'spectres', lentille: 'lentilles' };
+const labBack = () => { const i = CH.findIndex(c => c.id === LABCH[location.hash.split('/')[1]]); return i >= 0 ? 'cours/' + (i + 1) : 'cours'; };
+const crumb = (href, label, here) => { if (href === 'atelier') { href = labBack(); label = 'Retour au cours'; } return `<div class="crumb"><a href="#${href}">← ${label}</a><span>›</span>${here}</div>`; };
 const meter = a => `<div class="meter"><i style="width:${Math.round(100 * a[0] / a[1])}%"></i></div><span class="meter-t">${a[0]} / ${a[1]}</span>`;
 
 /* ================= EFFETS : toast, confettis, récompenses, partage ================= */
@@ -227,8 +228,7 @@ function vExos(sub) {
     if (!sub || (sub !== 'R' && !THEMES[sub])) {
         const s = stats();
         app.innerHTML = `<h1>Exercices</h1><p class="sub">${EX.length} exercices corrigés, chacun avec un indice et une correction détaillée.</p>
-        <div class="card total">${meter(s.exos)}<span class="solo" title="réussis sans indice">★ ${nSolo()}</span></div>
-        <p class="note">★ = réussi sans ouvrir l'indice. L'indice ne donne jamais la réponse : s'en servir, c'est déjà travailler.</p>
+        <div class="card total">${meter(s.exos)}</div>
         ${retry.length ? `<a class="row hot" href="#exos/R"><span class="num">↻</span><span class="row-t"><b>À retravailler</b><small>${plur(retry.length, 'exercice')} à refaire</small></span><span class="go">→</span></a>` : ''}
         <div class="list">${keys.map(k => { const l = EX.filter(e => e.t === k), ok = l.filter(e => stOf(e.id) === 'ok').length; return `<a class="row" href="#exos/${k}"><span class="row-t"><b>${THEMES[k].nom}</b><small>${plur(l.length, 'exercice')}</small></span><span class="row-m">${meter([ok, l.length])}</span></a>`; }).join('')}</div>`;
         return;
@@ -241,7 +241,7 @@ function vExos(sub) {
     list.forEach(ex => { const d = document.createElement('div'); box.appendChild(d); renderEx(ex, d); });
 }
 function nextAction() {
-    const s = stats(), unread = CH.findIndex(c => !S.read[c.id]), any = s.cours[0] + s.exos[0] + s.flash[0] + s.lab[0] > 0;
+    const s = stats(), unread = CH.findIndex(c => !S.quick[c.id]);
     const due = FL.filter((f, i) => S.fl[i] && flDue(i)).length, retry = retryList().length, keys = Object.keys(THEMES);
     if (unread >= 0) return { href: '#cours/' + (unread + 1), t: unread ? 'Continuer le cours' : 'Commencer le cours', s: `Chapitre ${unread + 1} — ${CH[unread].title}` };
     if (retry) return { href: '#exos/R', t: 'Reprendre ce qui reste à retravailler', s: plur(retry, 'exercice') };
@@ -255,14 +255,11 @@ function vHome() {
     const s = stats(), d = daysLeft(), p = pctAll(), h = new Date().getHours(), na = nextAction();
     const hello = h < 5 ? 'Encore debout ?' : h < 12 ? 'Bonjour.' : h < 18 ? 'Bon après-midi.' : 'Bonsoir.';
     let msg;
-    if (d === 0) msg = `C'est aujourd'hui. La fiche récap, les vérifications, et tu y vas. Le travail est fait.`;
-    else if (p === 0) msg = `${d ? `Le contrôle est dans ${plur(d, 'jour')}. ` : ''}Tout est ici : le cours, les méthodes, les exercices. On commence par le début, tranquillement.`;
-    else if (d === 1) msg = `C'est demain. Déjà ${p} % du parcours. Aujourd'hui : méthodes, contrôle blanc, cartes mémoire.`;
-    else if (p < 30) msg = `Déjà ${p} % du parcours. Un petit pas de plus aujourd'hui, et ça avance vite.`;
-    else if (p < 70) msg = `${p} % du parcours. Le plus dur est derrière toi, continue sur ta lancée.`;
-    else if (p < 100) msg = `${p} % ! Il ne reste presque rien. Garde les cartes mémoire et le contrôle blanc pour la fin.`;
-    else msg = `Tout est fait. Vraiment tout. Chapeau.`;
-    const nd = Object.keys(S.days).length, due = FL.filter((f, i) => S.fl[i] && flDue(i)).length;
+    if (d === 0) msg = `C'est aujourd'hui. La fiche récap, et tu y vas.`;
+    else if (p === 0) msg = `On commence par le début, tranquillement.`;
+    else if (d === 1) msg = `C'est demain. Contrôle blanc, puis la fiche récap.`;
+    else if (p < 100) msg = `Déjà ${p} % de fait. On continue.`;
+    else msg = `Tout est fait. Chapeau.`;
     const tile = (href, t, sub, m, cls) => `<a class="tile ${cls}" href="#${href}"><h3>${t}</h3><p>${sub}</p>${m ? `<div class="tile-m">${meter(m)}</div>` : ''}</a>`;
     app.innerHTML = `
     <section class="hero">
@@ -272,15 +269,12 @@ function vHome() {
       <a class="next" href="${na.href}"><small>Prochaine étape</small><b>${na.t}</b><span>${na.s}</span><i>→</i></a>
       <div class="chips-info">
         ${d !== null ? `<a class="count" href="#controle">${d === 0 ? `Contrôle aujourd'hui` : d === 1 ? 'Contrôle demain' : `Contrôle dans ${d} jours`}</a>` : '<a class="count" href="#controle">Régler la date du contrôle</a>'}
-        ${due ? `<a class="count c3" href="#controle/cartes">${plur(due, 'carte')} à revoir</a>` : ''}
-        ${S.last ? `<a class="count c4" href="${S.last}">Reprendre où j'en étais</a>` : ''}
       </div>
     </section>
     <section class="tiles">
-      ${tile('cours', 'Cours', `${CH.length} notions illustrées, une question pour vérifier chacune`, s.cours, 't1')}
-      ${tile('atelier', 'Atelier', 'Fais bouger les rayons, les spectres, les couleurs', s.lab, 't2')}
-      ${tile('methodes', 'Méthodes', 'Les recettes : « si je vois ça, je fais ça »', null, 't3')}
-      ${tile('exos', 'Exercices', `${EX.length} exercices corrigés, avec indice et correction`, s.exos, 't4')}
+      ${tile('cours', 'Cours', `${CH.length} chapitres courts, avec schémas à manipuler`, s.cours, 't1')}
+      ${tile('methodes', 'Méthodes', 'Quoi faire, étape par étape, devant chaque type d\'exercice', null, 't3')}
+      ${tile('exos', 'Exercices', `${EX.length} exercices, avec indice et correction détaillée`, s.exos, 't4')}
       ${tile('controle', 'Avant le contrôle', 'Fiche récap, cartes mémoire, contrôle blanc', s.flash, 't5')}
     </section>
     <p class="center share-line">Ça peut servir à quelqu'un de ta classe ? ${shareBtn('Partager')}</p>`;
@@ -288,8 +282,8 @@ function vHome() {
 /* ================= COURS ================= */
 function vCours(sub) {
     if (!sub || !CH[+sub - 1]) {
-        app.innerHTML = `<h1>Le cours</h1><p class="sub">${CH.length} notions. Lis, manipule le schéma, réponds à la question.</p>
-        <div class="list">${CH.map((c, k) => `<a class="row" href="#cours/${k + 1}"><span class="num">${k + 1}</span><span class="row-t"><b>${c.title}</b><small>${c.sub}</small></span><span class="row-s">${S.read[c.id] ? '<i class="pill ok">compris</i>' : ''}${S.quick[c.id] ? '<i class="pill ok">question ✓</i>' : ''}</span></a>`).join('')}</div>`;
+        app.innerHTML = `<h1>Le cours</h1><p class="sub">Lis, manipule le schéma, réponds à la question en bas : le chapitre est validé.</p>
+        <div class="list">${CH.map((c, k) => `<a class="row" href="#cours/${k + 1}"><span class="num">${k + 1}</span><span class="row-t"><b>${c.title}</b><small>${c.sub}</small></span><span class="row-s">${S.quick[c.id] ? '<i class="pill ok">✓ validé</i>' : ''}</span></a>`).join('')}</div>`;
         return;
     }
     const k = +sub - 1, c = CH[k], keep = (typeof KEEP !== 'undefined' && KEEP[c.id]) || null;
@@ -298,21 +292,16 @@ function vCours(sub) {
     ${c.html()}
     ${keep ? `<div class="keep"><div class="keep-h">Je retiens</div><ul>${keep.map(x => `<li>${x}</li>`).join('')}</ul></div>` : ''}
     <div class="card quick" id="quick"></div>
-    <div class="chap-actions"><button class="btn ${S.read[c.id] ? 'done' : 'primary'}" id="readBtn">${S.read[c.id] ? '✓ Compris' : `J'ai compris`}</button></div>
     <div class="pn">${k > 0 ? `<a class="btn ghost" href="#cours/${k}">← ${CH[k - 1].title}</a>` : '<span></span>'}${k < CH.length - 1 ? `<a class="btn ghost" href="#cours/${k + 2}">${CH[k + 1].title} →</a>` : `<a class="btn ghost" href="#methodes">Les méthodes →</a>`}</div>
     </article>`;
-    $('#readBtn').onclick = e => {
-        S.read[c.id] = !S.read[c.id]; save(); e.target.className = 'btn ' + (S.read[c.id] ? 'done pulse' : 'primary'); e.target.textContent = S.read[c.id] ? '✓ Compris' : `J'ai compris`;
-        if (S.read[c.id]) toast(k < CH.length - 1 ? 'Noté. Chapitre suivant quand tu veux.' : 'Cours terminé. Place aux méthodes.');
-    };
     const host = $('#quick'), q = c.quick;
-    host.innerHTML = `<div class="quick-h">Vérifie en 10 secondes</div><div class="ex-q">${q.q}</div><div class="opts">${shuffled(q.opts.length).map(i => `<button class="opt" data-i="${i}">${q.opts[i]}</button>`).join('')}</div><div class="ex-fb" hidden></div>`;
+    host.innerHTML = `<div class="quick-h">La question du chapitre</div><div class="ex-q">${q.q}</div><div class="opts">${shuffled(q.opts.length).map(i => `<button class="opt" data-i="${i}">${q.opts[i]}</button>`).join('')}</div><div class="ex-fb" hidden></div>`;
     if (QH[c.id]) $('.opts', host).insertAdjacentHTML('afterend', hintD(QH[c.id]));
     const fb = $('.ex-fb', host), good = t => { $(`.opt[data-i="${q.a}"]`, host).classList.add('good'); fb.hidden = false; fb.className = 'ex-fb ok'; fb.innerHTML = (t || '<b>Exact.</b>') + ' ' + q.why; };
     $$('.opt', host).forEach(b => b.onclick = () => {
         $$('.opt', host).forEach(x => x.classList.remove('good', 'bad'));
         host.classList.remove('pulse', 'shake'); void host.offsetWidth;
-        if (+b.dataset.i === q.a) { good(cheer()); host.classList.add('pulse'); if (!S.quick[c.id]) { S.quick[c.id] = true; save(); } }
+        if (+b.dataset.i === q.a) { good(cheer()); host.classList.add('pulse'); if (!S.quick[c.id]) { S.quick[c.id] = true; save(); toast('Chapitre validé'); } }
         else { serie = 0; host.classList.add('shake'); b.classList.add('bad'); fb.hidden = false; fb.className = 'ex-fb ko'; fb.innerHTML = 'Pas encore. Relis les encadrés au-dessus, puis réessaie.'; }
     });
     if (S.quick[c.id]) good();
@@ -346,22 +335,15 @@ const LABS = [
     { k: 'guide', title: 'Réfraction guidée', d: 'Snell-Descartes en 5 étapes, validées une par une', fn: labGuide },
     { k: 'schema', title: 'Schéma à trous', d: 'Touche le bon élément sur le schéma', fn: labSchema },
     { k: 'puissances', title: 'Puissances de 10', d: 'Additionner ou multiplier les exposants ? Entraînement sans fin', fn: labPow },
-    { k: 'spectres', title: 'Spectres', d: 'Corps chaud, gaz, filtre. Et les étoiles mystères', fn: labSpectres },
-    { k: 'voyage', title: 'Le voyage de la lumière', d: 'Combien de temps pour atteindre la Lune, le Soleil, une étoile ?', fn: labVoyage },
-    { k: 'couleurs', title: 'Couleurs', d: `Allume les lumières, choisis l'objet, regarde ce qu'on voit`, fn: labCouleurs }
+    { k: 'spectres', title: 'Spectres', d: 'Corps chaud, gaz, filtre. Et les étoiles mystères', fn: labSpectres }
 ].concat(window.EXTRA_LABS || []);
 function vAtelier(sub) {
-    const i = LABS.findIndex(l => l.k === sub);
-    if (i >= 0) {
-        LABS[i].fn(); const n = LABS[(i + 1) % LABS.length];
-        app.insertAdjacentHTML('beforeend', `<div class="pn"><a class="btn ghost" href="#atelier">← Tous les ateliers</a><a class="btn ghost" href="#atelier/${n.k}">${n.title} →</a></div>`);
-        return;
-    }
-    app.innerHTML = `<h1>L'atelier</h1><p class="sub">Ici on manipule. Ce sont les mêmes lois que dans le cours, mais tu les vois bouger.</p>
-    <div class="list">${LABS.map(l => `<a class="row" href="#atelier/${l.k}"><span class="row-t"><b>${l.title}</b><small>${l.d}</small></span><span class="go">→</span></a>`).join('')}</div>
-    <div class="card"><h3>Défis</h3><ul class="defis">${DEFIS.map(d => `<li class="${S.lab[d.id] ? 'ok' : ''}">${d.txt}</li>`).join('')}</ul></div>`;
+    const l = LABS.find(x => x.k === sub);
+    if (!l) return vCours();
+    l.fn();
+    app.insertAdjacentHTML('beforeend', `<div class="pn"><a class="btn ghost" href="#${labBack()}">← Retour au cours</a><a class="btn ghost" href="#exos">Les exercices →</a></div>`);
 }
-function winDefi(id) { if (!S.lab[id]) { S.lab[id] = true; save(); toast('Défi réussi'); confetti(innerWidth / 2, innerHeight / 2, 24); return true; } return false; }
+function winDefi(id) { if (!S.lab[id]) { S.lab[id] = true; save(); } return false; }
 
 function labRefraction() {
     const o = MILIEUX.map((m, k) => `<option value="${k}">${m[0]} (n = ${fr(m[1])})</option>`).join('');
@@ -370,10 +352,8 @@ function labRefraction() {
       <div class="ctrl"><label>Milieu 1 <small>d'où vient la lumière</small><select id="rf-1">${o}</select></label><label>Milieu 2 <small>où elle entre</small><select id="rf-2">${o}</select></label></div>
       <label class="rng">Angle d'incidence i₁ = <b id="rf-iv"></b><input type="range" id="rf-i" min="0" max="89" value="20"></label>
       <div class="readout" id="rf-out"></div></div>
-    <div><div class="card"><h3>Le calcul, en direct</h3><div id="rf-calc" class="calc"></div></div>
-    <div class="card"><h3>4 défis</h3><ul class="defis" id="rf-defis"></ul>${hintD(`Défi 2 : pense au cas particulier du cours, celui de la normale. Défi 3 : dans quel sens faut-il traverser pour entrer dans un indice plus petit ? Défi 4 : surveille la valeur de sin(i₂) dans le calcul pendant que tu augmentes l'angle.`)}</div></div></div>`;
+    <div><div class="card"><h3>Le calcul, en direct</h3><div id="rf-calc" class="calc"></div></div></div></div>`;
     const s1 = $('#rf-1'), s2 = $('#rf-2'), rg = $('#rf-i'); s2.value = 1;
-    const defis = () => $('#rf-defis').innerHTML = DEFIS.slice(0, 4).map(d => `<li class="${S.lab[d.id] ? 'ok' : ''}">${d.txt}</li>`).join('');
     function u() {
         const a = +s1.value, b = +s2.value, i = +rg.value, n1 = MILIEUX[a][1], n2 = MILIEUX[b][1];
         const s = n1 * Math.sin(i * RAD) / n2, tot = s > 1, i2 = tot ? null : Math.asin(s) / RAD;
@@ -389,14 +369,8 @@ function labRefraction() {
         $('#rf-calc').innerHTML = `<div>n₁ × sin(i₁) = n₂ × sin(i₂)</div>
           <div>sin(i₂) = ${F(`${fr(n1)} × sin(${i}°)`, fr(n2))} = ${F(fr(n1 * Math.sin(i * RAD), 3), fr(n2))} = <b>${fr(s, 3)}</b></div>
           <div>${tot ? 'Ce nombre est plus grand que 1 : aucun angle n\'a ce sinus.' : `i₂ = sin<sup>−1</sup>(${fr(s, 3)}) = <b>${fr(i2, 1)}°</b>`}</div>`;
-        let w = false;
-        if (a === 0 && b === 1 && i === 40) w = winDefi('rf1') || w;
-        if (i === 0 || n1 === n2) w = winDefi('rf2') || w;
-        if (n2 < n1 && i > 0 && !tot) w = winDefi('rf3') || w;
-        if (a === 1 && b === 0 && tot) w = winDefi('rf4') || w;
-        if (w) defis();
     }
-    [s1, s2].forEach(e => e.onchange = u); rg.oninput = u; defis(); u();
+    [s1, s2].forEach(e => e.onchange = u); rg.oninput = u; u();
 }
 
 function labGuide() {
@@ -420,7 +394,7 @@ function labGuide() {
         const st = STEPS(), end = step >= st.length, cur = st[step];
         $('#gd').innerHTML = `<div class="card lab"><p class="ex-q">Un rayon passe de ${art(sc.m1)} (n = ${fr(sc.n1)}) dans ${art(sc.m2)} (n = ${fr(sc.n2)}) avec un angle d'incidence i₁ = ${sc.i}°. Calcule l'angle de réfraction i₂.</p>
           <ol class="gd-steps">${done.map(d => `<li class="ok">${d}</li>`).join('')}${end ? '' : `<li class="cur"><div>${cur.q}</div>${hintD(GH[step])}${cur.pick ? `<div class="chips">${cur.pick.map(o => `<button class="chip" data-v="${o}">${o}</button>`).join('')}</div>` : `<div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="gd-in" placeholder="ta réponse"><span class="unit">${cur.unit || ''}</span><button class="btn primary" id="gd-ok">Valider</button><button class="btn ghost" id="gd-calc">Calculatrice</button></div>`}${msg ? `<div class="ex-fb ko">${msg}</div>` : ''}</li>`}</ol>
-          ${end ? `<div class="fig">${rayDiagram({ n1: sc.n1, n2: sc.n2, i: sc.i, m1: sc.m1, m2: sc.m2, reflect: false, anim: true })}</div><div class="ex-fb ok"><b>Réfraction menée au bout.</b> ${S.guide < 3 ? `${S.guide} sur 3 pour le défi.` : 'Les 5 étapes, dans cet ordre, à chaque fois.'}</div><div class="ex-actions"><button class="btn primary" id="gd-new">Scénario suivant</button></div>` : `<p class="note">Étape ${step + 1} sur ${st.length}</p>`}</div>`;
+          ${end ? `<div class="fig">${rayDiagram({ n1: sc.n1, n2: sc.n2, i: sc.i, m1: sc.m1, m2: sc.m2, reflect: false, anim: true })}</div><div class="ex-fb ok"><b>Réfraction menée au bout.</b> Les 5 étapes, dans cet ordre, à chaque fois.</div><div class="ex-actions"><button class="btn primary" id="gd-new">Scénario suivant</button></div>` : `<p class="note">Étape ${step + 1} sur ${st.length}</p>`}</div>`;
         if (end) { $('#gd-new').onclick = newSc; return; }
         const go = v => {
             if (cur.ok(v)) { done.push(cur.show); step++; serie++; if (step >= st.length) { S.guide++; save(); if (S.guide >= 3) winDefi('guide'); } draw(); }
@@ -525,60 +499,14 @@ function labPow() {
         onAnswer: ok => { if (ok) { streak++; if (streak > S.powBest) S.powBest = streak; save(); if (streak >= 5) winDefi('pow'); } else streak = 0; } });
 }
 
-function labVoyage() {
-    const D = [['la Lune', 3.84, 8], ['le Soleil', 1.5, 11], ['Jupiter', 7.8, 11], ['Neptune', 4.5, 12], ['Proxima du Centaure', 3.98, 16]];
-    let k = 1;
-    const dur = s => s < 60 ? `${cl(s)} s` : s < 3600 ? `${Math.floor(s / 60)} min ${Math.round(s % 60)} s` : s < 86400 ? `${Math.floor(s / 3600)} h ${Math.round(s % 3600 / 60)} min` : s < 3.156e7 ? `${Math.round(s / 86400)} jours` : `${cl(s / 3.156e7)} ans`;
-    app.innerHTML = `${crumb('atelier', 'Atelier', 'Voyage')}<h1>Le voyage de la lumière</h1><p class="sub">Choisis une destination. Le calcul est toujours le même : t = d ÷ c.</p>
-    <div class="card lab"><div class="chips" id="vy-c"></div><div class="track"><span class="from">Terre</span><i id="vy-dot"></i><span class="to" id="vy-to"></span></div><div class="big-res" id="vy-res"></div></div>
-    <div class="card"><h3>Le calcul rédigé</h3><div class="calc" id="vy-calc"></div></div>`;
-    function u() {
-        const [nom, m, e] = D[k], t = m / 3 * Math.pow(10, e - 8);
-        $('#vy-c').innerHTML = D.map((d, i) => `<button class="chip ${i === k ? 'on' : ''}" data-i="${i}">${d[0]}</button>`).join('');
-        $$('#vy-c .chip').forEach(b => b.onclick = () => { k = +b.dataset.i; u(); });
-        $('#vy-to').textContent = nom;
-        const dot = $('#vy-dot'); dot.classList.remove('go'); void dot.offsetWidth; dot.classList.add('go');
-        $('#vy-res').innerHTML = `<b>${dur(t)}</b><span>pour parcourir ${cl(m)} × ${p10(e)} m</span>`;
-        $('#vy-calc').innerHTML = `<div>Données : d = ${cl(m)} × ${p10(e)} m &nbsp;·&nbsp; c = 3,00 × ${p10(8)} m/s</div>
-          <div>t = ${F('d', 'c')} = ${F(`${cl(m)} × ${p10(e)}`, `3,00 × ${p10(8)}`)}</div>
-          <div>= ${F(cl(m), '3,00')} × ${F(p10(e), p10(8))} <span class="hintline">nombres ensemble, puissances ensemble</span></div>
-          <div>= ${cl(m / 3)} × 10<sup>${e} − 8</sup> = ${cl(m / 3)} × ${p10(e - 8)} s</div>
-          <div>t = <b>${dur(t)}</b></div>`;
-    }
-    u();
-}
-
-function labCouleurs() {
-    const OBJ = { blanc: [1, 1, 1], rouge: [1, 0, 0], vert: [0, 1, 0], bleu: [0, 0, 1], jaune: [1, 1, 0], cyan: [0, 1, 1], magenta: [1, 0, 1], noir: [0, 0, 0] };
-    const NAME = { '111': 'blanc', '100': 'rouge', '010': 'vert', '001': 'bleu', '110': 'jaune', '011': 'cyan', '101': 'magenta', '000': 'noir' };
-    const PRIM = ['rouge', 'vert', 'bleu'];
-    let L = [1, 1, 1], ob = 'bleu';
-    app.innerHTML = `${crumb('atelier', 'Atelier', 'Couleurs')}<h1>Couleurs</h1><p class="sub">Allume ou éteins les trois lumières, choisis un objet, regarde ce qu'il devient.</p>
-    <div class="lab-grid"><div class="card lab"><h3>1. La lumière qui éclaire</h3><div class="chips" id="cl-l"></div><div class="fig" id="cl-rgb"></div><div class="readout" id="cl-lt"></div></div>
-    <div class="card lab"><h3>2. L'objet éclairé</h3><div class="chips" id="cl-o"></div><div class="fig" id="cl-shirt"></div><div class="readout" id="cl-txt"></div></div></div>`;
-    const list = t => PRIM.filter((p, i) => t[i]).join(' + ') || 'rien';
-    function u() {
-        $('#cl-l').innerHTML = PRIM.map((p, i) => `<button class="chip c-${p} ${L[i] ? 'on' : ''}" data-i="${i}">${p}</button>`).join('');
-        $$('#cl-l .chip').forEach(b => b.onclick = () => { L[+b.dataset.i] ^= 1; u(); });
-        $('#cl-o').innerHTML = Object.keys(OBJ).map(o => `<button class="chip ${o === ob ? 'on' : ''}" data-o="${o}">${o}</button>`).join('');
-        $$('#cl-o .chip').forEach(b => b.onclick = () => { ob = b.dataset.o; u(); });
-        const seen = L.map((v, i) => v & OBJ[ob][i]), ln = NAME[L.join('')], sn = NAME[seen.join('')];
-        $('#cl-rgb').innerHTML = figRGB(L);
-        $('#cl-lt').innerHTML = `<p>Lumière : <b>${ln === 'noir' ? 'aucune (obscurité)' : ln}</b>${L.reduce((a, b) => a + b) > 1 ? ` (${list(L)})` : ''}.</p>`;
-        $('#cl-shirt').innerHTML = figTshirt(sn === 'noir' ? '#0c0c0c' : `rgb(${seen.map(v => v * 255).join(',')})`);
-        $('#cl-txt').innerHTML = `<p>L'objet ${ob} diffuse : <b>${list(OBJ[ob])}</b>.<br>Il reçoit : <b>${list(L)}</b>.<br>Ce qui repart vers l'œil : <b>${list(seen)}</b> → il paraît <b>${sn}</b>.</p>`;
-    }
-    u();
-}
-
 /* ================= MÉTHODES ================= */
 function vMeth() {
     app.innerHTML = `<h1>Les méthodes</h1><p class="sub">Des recettes. Tu repères le type d'exercice, tu déroules les étapes dans l'ordre, tu vérifies.</p>
     <div class="card"><h3>Quel exercice ai-je devant moi ?</h3><div class="aig">${AIGUILLAGE.map(a => `<button class="aig-row" data-r="${a[1]}"><span>${a[0]}</span><b>Recette ${a[1]} →</b></button>`).join('')}</div></div>
     ${RC.map((r, k) => `<details class="card rc" id="rc${k}"><summary><span class="num">${k}</span><span><b>${r.title}</b><small>${r.when}</small></span></summary>
-      <ol class="steps-l">${r.steps.map(s => `<li>${s}</li>`).join('')}</ol>${r.fig ? `<div class="fig">${r.fig()}</div>` : ''}${r.ex ? `<div class="exb">${r.ex}</div>` : ''}${r.trap ? `<div class="trap">${r.trap}</div>` : ''}</details>`).join('')}
+      <ol class="steps-l">${r.steps.map(s => `<li>${s}</li>`).join('')}</ol>${r.fig ? `<div class="fig">${r.fig()}</div>` : ''}${r.ex ? `<div class="exb">${r.ex}</div>` : ''}${r.trap ? `<div class="trap">${r.trap}</div>` : ''}${k === 3 ? '<p><a class="btn ghost" href="#atelier/guide">M\'entraîner pas à pas →</a></p>' : ''}</details>`).join('')}
     <div class="card"><h3>Avant de rendre la copie : ${VERIFS.length} vérifications</h3><ul class="checks">${VERIFS.map(v => `<li>${v}</li>`).join('')}</ul></div>
-    <div class="pn"><a class="btn primary" href="#exos">S'entraîner →</a>${THEMES.O ? `<a class="btn ghost" href="#exos/O">Remettre les étapes dans l'ordre →</a>` : ''}</div>`;
+    <div class="pn"><a class="btn primary" href="#exos">S'entraîner →</a></div>`;
     $$('.aig-row').forEach(b => b.onclick = () => { const d = $('#rc' + b.dataset.r); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 }
 
@@ -588,7 +516,7 @@ function vCtrl(sub) {
     if (sub === 'cartes') return vCartes();
     if (sub === 'blanc') return vBlanc();
     const s = stats(), d = daysLeft(), due = FL.filter((f, i) => flDue(i)).length;
-    app.innerHTML = `<h1>Avant le contrôle</h1><p class="sub">${d === null ? 'Indique la date de ton contrôle pour avoir le compte à rebours.' : d === 0 ? `C'est aujourd'hui. La fiche, les vérifications, et c'est parti.` : d === 1 ? `C'est demain. Méthodes, contrôle blanc, cartes mémoire.` : `Encore ${d} jours. Voilà comment t'organiser.`}</p>
+    app.innerHTML = `<h1>Avant le contrôle</h1><p class="sub">${d === null ? 'Indique la date de ton contrôle pour avoir le compte à rebours.' : d === 0 ? `C'est aujourd'hui. La fiche, les vérifications, et c'est parti.` : d === 1 ? `C'est demain. Méthodes, contrôle blanc, cartes mémoire.` : `Encore ${d} jours.`}</p>
     <div class="card date"><label for="examDate">Date de mon contrôle</label><input type="date" id="examDate" value="${S.exam || ''}"></div>
     <div class="list">
       <a class="row" href="#controle/fiche"><span class="row-t"><b>La fiche récap</b><small>Tout l'essentiel sur un écran</small></span><span class="go">→</span></a>
@@ -596,14 +524,8 @@ function vCtrl(sub) {
       <a class="row" href="#controle/blanc"><span class="row-t"><b>Contrôle blanc</b><small>${BLANC.length} questions, noté sur 20${S.best !== null ? ` · meilleure note : ${S.best} / 20` : ''}</small></span><span class="go">→</span></a>
       <a class="row" href="fiche-lumiere.pdf" target="_blank" rel="noopener"><span class="row-t"><b>La fiche à imprimer</b><small>Cours + méthodes en PDF</small></span><span class="go">↓</span></a>
     </div>
-    <div class="card"><h3>Plan de révision</h3><ul class="plan">${PLAN.map((p, i) => `<li><label><input type="checkbox" data-p="${i}" ${S.plan[i] ? 'checked' : ''}><span><b>${p[0]} — ${p[1]}</b><small>${p[2]}</small></span></label></li>`).join('')}</ul></div>
-    <div class="card"><h3>Où j'en suis</h3>
-      <div class="statl"><span>Cours</span>${meter(s.cours)}</div><div class="statl"><span>Défis de l'atelier</span>${meter(s.lab)}</div>
-      <div class="statl"><span>Exercices réussis</span>${meter(s.exos)}</div><div class="statl"><span>Cartes sues</span>${meter(s.flash)}</div></div>
-    <p class="center">${shareBtn('Partager le site à ma classe')}</p>
     <p class="reset"><button class="btn ghost small" id="reset">Effacer ma progression</button></p>`;
     $('#examDate').onchange = e => { S.exam = e.target.value; save(); toast(S.exam ? 'Date enregistrée' : 'Date retirée'); route(true); };
-    $$('[data-p]').forEach(c => c.onchange = () => { S.plan[c.dataset.p] = c.checked; save(); });
     let armed = false;
     $('#reset').onclick = e => {
         if (!armed) { armed = true; e.target.textContent = 'Tout effacer, vraiment ? Appuie encore une fois'; e.target.classList.add('danger'); return; }
@@ -619,11 +541,11 @@ function vFiche() {
       ${b('Les valeurs', `c = 3,00 × ${p10(8)} m/s<br>Visible : 400 nm (violet) → 800 nm (rouge)<br>1 nm = ${p10(-9)} m<br>n : air 1,00 · eau 1,33 · verre ≈ 1,5`)}
       ${b('Les formules', `v = ${F('d', 't')} &nbsp; d = v × t &nbsp; t = ${F('d', 'v')}<br>r = i₁<br>n₁ × sin(i₁) = n₂ × sin(i₂)<br>n = ${F('c', 'v')}`)}
       ${b('Puissances de 10', `${p10('a')} × ${p10('b')} = 10<sup>a+b</sup><br>${p10('a')} ÷ ${p10('b')} = 10<sup>a−b</sup><br>(${p10('a')})<sup>b</sup> = 10<sup>a×b</sup>`)}
-      ${b('Les mots', `<b>Source primaire</b> : produit sa lumière.<br><b>Objet diffusant</b> : renvoie la lumière reçue.<br><b>Normale</b> : perpendiculaire à la surface en I.<br><b>Dioptre</b> : surface entre deux milieux.<br><b>Réfraction</b> : changement de direction en changeant de milieu.<br><b>Dispersion</b> : séparation des couleurs.<br><b>Monochromatique</b> : une seule radiation.`)}
+      ${b('Les mots', `<b>Source primaire</b> : produit sa lumière.<br><b>Source secondaire</b> : renvoie la lumière reçue.<br><b>Normale</b> : perpendiculaire à la surface en I.<br><b>Dioptre</b> : surface entre deux milieux.<br><b>Réfraction</b> : changement de direction en changeant de milieu.<br><b>Dispersion</b> : séparation des couleurs.<br><b>Monochromatique</b> : une seule radiation.<br><b>Indice optique n</b> : sans unité, toujours ≥ 1.`)}
       ${b('Le sens du rayon', `Indice plus grand → se rapproche de la normale.<br>Indice plus petit → s'écarte de la normale.<br>i₁ = 0° → pas dévié.`)}
       ${b('Les spectres', `<b>Continu</b> : corps chaud. Plus chaud → plus de violet.<br><b>Raies d'émission</b> (fond noir) : gaz excité.<br><b>Raies d'absorption</b> (raies noires) : lumière blanche à travers un gaz.<br><b>Bandes noires larges</b> : filtre, solution.<br>Un élément est présent si <u>toutes</u> ses raies y sont.`)}
       ${b('Le prisme', `Violet : le plus dévié.<br>Rouge : le moins dévié.`)}
-      ${b('Couleurs', `Rouge + vert + bleu = blanc.<br>Filtre rouge, vert ou bleu : transmet sa couleur, absorbe les deux autres.<br>Objet rouge, vert ou bleu : diffuse sa couleur. Sans elle → noir.`)}
+      ${b('Couleurs (complément)', `Rouge + vert + bleu = blanc.<br>Filtre rouge, vert ou bleu : transmet sa couleur, absorbe les deux autres.<br>Objet rouge, vert ou bleu : diffuse sa couleur. Sans elle → noir.`)}
       ${extra}
     </div>
     <div class="card"><h3>Les ${VERIFS.length} vérifications</h3><ul class="plan">${VERIFS.map((v, i) => `<li><label><input type="checkbox" data-c="${i}" ${S.check[i] ? 'checked' : ''}><span>${v}</span></label></li>`).join('')}</ul></div>
@@ -693,7 +615,7 @@ function route(keep) {
     byClick = false; cur = location.hash;
     app.innerHTML = '';
     ROUTES[name](sub);
-    $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === name));
+    $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === (name === 'atelier' ? 'cours' : name)));
     if (keep !== true) { app.classList.remove('in'); void app.offsetWidth; app.classList.add('in'); }
     window.scrollTo(0, y);
     if (name !== 'accueil' && S.last !== location.hash) { S.last = location.hash; save(); }
@@ -708,4 +630,6 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'ArrowLeft') $('#fc-no').click();
 });
 if (/^#(jour|recompenses|exos\/express)/.test(S.last || '')) S.last = '';
+{ const i = CH.findIndex(c => c.id === 'couleurs'); if (i >= 0 && i < CH.length - 1) CH.push(CH.splice(i, 1)[0]); }
+const ct = $('#calcTab'); if (ct) ct.onclick = () => window.Calc && Calc.toggle();
 applyTheme(); progress(); route();
