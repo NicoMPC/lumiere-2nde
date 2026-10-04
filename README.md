@@ -96,6 +96,14 @@ google-chrome --headless=new --no-pdf-header-footer \
   traités dans presque tous les cours, sont gardés tels quels.
 - « Suivant » reste verrouillé tant que la réponse n'est pas validée.
 
+## Suivi de la progression
+
+`js/suivi.js` (identique à celui de `maths-4e`, dont le README décrit le
+fonctionnement) envoie un résumé de la progression vers le tableau de suivi
+du professeur, uniquement si le site a été ouvert une fois avec un lien
+personnel `…/?k=code`. Il ne fait que lire la progression (`snapshot()` dans
+`app.js`) : la clé `lumiere-2nde-v1` n'est jamais modifiée par le suivi.
+
 ## Vérifier avant de publier
 
 ```bash
