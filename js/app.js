@@ -38,7 +38,14 @@ const flDue = i => !S.fl[i] || S.fl[i].d <= dayNum();
 
 /* ================= SAUVEGARDE, PROGRESSION ================= */
 function write() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
-function save() { S.days[dayNum()] = 1; if (retryList().length) S.hadRetry = true; write(); progress(); }
+function save() { S.days[dayNum()] = 1; if (retryList().length) S.hadRetry = true; write(); progress(); suivi(); }
+/* Ce qui part vers le tableau de suivi (seulement si un code de suivi a été enregistré, voir suivi.js). Lecture seule : ne modifie pas la progression. */
+function snapshot() {
+    const s = stats(), th = {}, txt = h => String(h).replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    for (const k in THEMES) { const l = EX.filter(e => e.t === k); th[THEMES[k].nom] = [l.filter(e => stOf(e.id) === 'ok').length, l.length]; }
+    return { pct: pctAll(), cours: s.cours, exos: s.exos, cartes: s.flash, blanc: S.best, retry: retryList().map(e => e.id + ' ' + txt(e.q).slice(0, 60)), themes: th, jours: Object.keys(S.days).length, last: S.last };
+}
+function suivi() { try { if (window.Suivi) Suivi.push('lumiere-2nde', snapshot); } catch (e) { } }
 function stats() {
     return {
         cours: [CH.filter(c => S.quick[c.id]).length, CH.length],
@@ -632,4 +639,4 @@ document.addEventListener('keydown', e => {
 if (/^#(jour|recompenses|exos\/express)/.test(S.last || '')) S.last = '';
 { const i = CH.findIndex(c => c.id === 'couleurs'); if (i >= 0 && i < CH.length - 1) CH.push(CH.splice(i, 1)[0]); }
 const ct = $('#calcTab'); if (ct) ct.onclick = () => window.Calc && Calc.toggle();
-applyTheme(); progress(); route();
+applyTheme(); progress(); route(); suivi();
