@@ -22,8 +22,8 @@ question : « est-ce que ça fait gagner des points au contrôle ? »
 | Onglet | Contenu |
 |---|---|
 | **Cours** | 12 chapitres courts : définitions au mot près, schéma, exemple, piège, « Je retiens », puis une question qui valide le chapitre. Les manipulations (simulateur de réfraction, réfraction guidée, schéma à trous, puissances de 10, spectres, banc d'optique) s'ouvrent depuis le chapitre concerné. |
-| **Méthodes** | Un aiguillage « quel exercice ai-je devant moi ? » et 9 recettes en étapes « si… alors… », plus les vérifications avant de rendre la copie. |
-| **Exercices** | 64 exercices par thème, réponse vérifiée, indice, correction détaillée, liste « à retravailler », bouton « Refaire ». |
+| **Méthodes** | Un aiguillage « quel exercice ai-je devant moi ? » et 9 recettes en étapes « si… alors… », plus les vérifications avant de rendre la copie. La recette 0 ouvre les **problèmes guidés** : 8 problèmes découpés en 5 étapes validées une par une, puis la rédaction modèle « sur ta copie ». |
+| **Exercices** | 94 exercices par thème (dont deux thèmes « outils » placés en premier : règles des puissances, conversions d'unités), réponse vérifiée, indice, correction détaillée, liste « à retravailler », bouton « Refaire ». |
 | **Contrôle** | Date du contrôle (réglable), fiche récap, cartes mémoire (répétition espacée 1 / 2 / 4 jours), contrôle blanc noté sur 20, fiche PDF à imprimer. |
 | **Calculette** | Scientifique, en degrés uniquement, touche ×10ˣ, sin⁻¹, messages d'erreur pédagogiques. |
 
@@ -38,6 +38,7 @@ question : « est-ce que ça fait gagner des points au contrôle ? »
 | `js/data.js` | Le contenu : `CH` (chapitres), `RC` (recettes), `AIGUILLAGE`, `EX` (exercices), `THEMES`, `FL` (cartes), `KEEP` (« Je retiens »), `QH` (indices des questions de cours), `BLANC` (contrôle blanc). |
 | `js/lentilles.js` | Le chapitre lentilles : pousse dans `CH`, `RC`, `EX`, `FL`… et définit `figLens` et l'atelier « banc d'optique ». |
 | `js/gen.js` | 15 générateurs de questions à valeurs aléatoires (`GEN`), déterministes par graine. Seul `GEN[GEN_POW]` est utilisé aujourd'hui (entraînement aux puissances de 10). |
+| `js/methode.js` | Les outils, ajoutés le 6 octobre 2026 : thèmes `P` (règles des puissances) et `U` (conversions), les 5 étapes (`ETAPES`), les problèmes guidés (`PB`) et leur atelier `labProbleme` (`#atelier/probleme`). |
 | `js/calc.js` | La calculatrice (`Calc.open()`, `Calc.toggle()`, analyseur maison, pas de `eval`). |
 | `js/app.js` | Le moteur : sauvegarde, navigation par `#hash`, rendu des exercices, séries avec Précédent / Suivant, cartes mémoire, contrôle blanc. |
 | `fiche-lumiere.pdf` | La fiche imprimable (10 pages). |
@@ -45,7 +46,7 @@ question : « est-ce que ça fait gagner des points au contrôle ? »
 | `tests/verif-contenu.js` | Vérification du contenu (voir plus bas). |
 
 Ordre de chargement des scripts : `gfx.js`, `data.js`, `gen.js`, `lentilles.js`,
-`calc.js`, `app.js`.
+`methode.js`, `calc.js`, `suivi.js`, `app.js`.
 
 ## Modifier le contenu
 
@@ -67,6 +68,13 @@ exercice numérique.
 `html: () => …`, `quick: { q, opts, a, why }`), plus `KEEP[id]` et `QH[id]`.
 Le chapitre « couleurs » est replacé en dernier au démarrage (`app.js`).
 
+**Ajouter un problème guidé** : un objet dans `PB` (`js/methode.js`) avec
+`id`, `titre`, `enonce`, `qs` (les questions, chacune rattachée à une étape
+`e` de 1 à 5, avec `pick` + `a`, ou `sci` / `num` + `unit`, un `hint`, la
+ligne `show` gardée une fois l'étape réussie, et un `diag` facultatif qui
+reconnaît une erreur classique) et `modele` (les 5 lignes de la rédaction).
+Ajouter les valeurs attendues dans `pbWant` (`tests/verif-contenu.js`).
+
 **Ajouter une recette** : un objet dans `RC`, et une ligne dans `AIGUILLAGE`
 qui pointe sur son index.
 
@@ -80,6 +88,16 @@ google-chrome --headless=new --no-pdf-header-footer \
 ```
 
 ## Règles de contenu
+
+- **Ne jamais renommer, renuméroter ni supprimer un identifiant d'exercice**
+  (`B8`, `P3`, `PB2`…), ni changer la clé `lumiere-2nde-v1` : la progression
+  des élèves est rangée par identifiant dans leur navigateur. On ajoute, on
+  corrige un énoncé, mais un identifiant publié reste.
+- **Les 5 étapes, toujours dans cet ordre et avec ces mots** (recette 0,
+  exercice `O1`, problèmes guidés) : je repère ce qu'on cherche, j'identifie
+  la formule, je vérifie les unités, je calcule, je vérifie le résultat.
+- **Les constantes sont redonnées dans chaque énoncé** qui s'en sert
+  (c = 3,00 × 10⁸ m/s, 1 nm = 10⁻⁹ m) : rien n'est supposé su par cœur.
 
 - **Vocabulaire du programme officiel** : source secondaire (ou objet
   diffusant), indice optique (aussi appelé indice de réfraction), vitesse de

@@ -14,9 +14,10 @@ const DEFIS = [
     { id: 'star', txt: `Identifie 3 étoiles mystères (atelier Spectres).` },
     { id: 'pow', txt: `Enchaîne 5 bonnes réponses de suite (atelier Puissances).` }
 ].concat(window.EXTRA_DEFIS || []);
-const BLANK = () => ({ read: {}, quick: {}, ex: {}, fl: {}, lab: {}, plan: {}, check: {}, best: null, powBest: 0, star: 0, guide: 0, express: 0, theme: 'light', last: '', days: {}, daily: {}, badges: {}, run: null, hadRetry: false, exam: '2026-10-06' });
+const BLANK = () => ({ read: {}, quick: {}, ex: {}, fl: {}, lab: {}, plan: {}, check: {}, best: null, powBest: 0, star: 0, guide: 0, express: 0, theme: 'light', last: '', days: {}, daily: {}, badges: {}, run: null, hadRetry: false, pb: {}, exam: '2026-10-13' });
 let S = BLANK();
 try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && typeof d === 'object') S = Object.assign(S, d); } catch (e) { /* stockage indisponible : le site marche quand même */ }
+if (S.exam === '2026-10-06') S.exam = '2026-10-13'; /* contrôle reporté d'une semaine */
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -237,6 +238,7 @@ function vExos(sub) {
         app.innerHTML = `<h1>Exercices</h1><p class="sub">${EX.length} exercices corrigés, chacun avec un indice et une correction détaillée.</p>
         <div class="card total">${meter(s.exos)}</div>
         ${retry.length ? `<a class="row hot" href="#exos/R"><span class="num">↻</span><span class="row-t"><b>À retravailler</b><small>${plur(retry.length, 'exercice')} à refaire</small></span><span class="go">→</span></a>` : ''}
+        <a class="row hot2" href="#atelier/probleme"><span class="num">5</span><span class="row-t"><b>Problèmes guidés</b><small>La méthode en 5 étapes, validées une par une</small></span><span class="go">→</span></a>
         <div class="list">${keys.map(k => { const l = EX.filter(e => e.t === k), ok = l.filter(e => stOf(e.id) === 'ok').length; return `<a class="row" href="#exos/${k}"><span class="row-t"><b>${THEMES[k].nom}</b><small>${plur(l.length, 'exercice')}</small></span><span class="row-m">${meter([ok, l.length])}</span></a>`; }).join('')}</div>`;
         return;
     }
@@ -348,7 +350,7 @@ function vAtelier(sub) {
     const l = LABS.find(x => x.k === sub);
     if (!l) return vCours();
     l.fn();
-    app.insertAdjacentHTML('beforeend', `<div class="pn"><a class="btn ghost" href="#${labBack()}">← Retour au cours</a><a class="btn ghost" href="#exos">Les exercices →</a></div>`);
+    app.insertAdjacentHTML('beforeend', `<div class="pn">${sub === 'probleme' ? '<a class="btn ghost" href="#methodes">← Les méthodes</a>' : `<a class="btn ghost" href="#${labBack()}">← Retour au cours</a>`}<a class="btn ghost" href="#exos">Les exercices →</a></div>`);
 }
 function winDefi(id) { if (!S.lab[id]) { S.lab[id] = true; save(); } return false; }
 
@@ -511,7 +513,7 @@ function vMeth() {
     app.innerHTML = `<h1>Les méthodes</h1><p class="sub">Des recettes. Tu repères le type d'exercice, tu déroules les étapes dans l'ordre, tu vérifies.</p>
     <div class="card"><h3>Quel exercice ai-je devant moi ?</h3><div class="aig">${AIGUILLAGE.map(a => `<button class="aig-row" data-r="${a[1]}"><span>${a[0]}</span><b>Recette ${a[1]} →</b></button>`).join('')}</div></div>
     ${RC.map((r, k) => `<details class="card rc" id="rc${k}"><summary><span class="num">${k}</span><span><b>${r.title}</b><small>${r.when}</small></span></summary>
-      <ol class="steps-l">${r.steps.map(s => `<li>${s}</li>`).join('')}</ol>${r.fig ? `<div class="fig">${r.fig()}</div>` : ''}${r.ex ? `<div class="exb">${r.ex}</div>` : ''}${r.trap ? `<div class="trap">${r.trap}</div>` : ''}${k === 3 ? '<p><a class="btn ghost" href="#atelier/guide">M\'entraîner pas à pas →</a></p>' : ''}</details>`).join('')}
+      <ol class="steps-l">${r.steps.map(s => `<li>${s}</li>`).join('')}</ol>${r.fig ? `<div class="fig">${r.fig()}</div>` : ''}${r.ex ? `<div class="exb">${r.ex}</div>` : ''}${r.trap ? `<div class="trap">${r.trap}</div>` : ''}${k === 3 ? '<p><a class="btn ghost" href="#atelier/guide">M\'entraîner pas à pas →</a></p>' : ''}${k === 0 ? '<p><a class="btn ghost" href="#atelier/probleme">M\'entraîner sur des problèmes guidés →</a></p>' : ''}</details>`).join('')}
     <div class="card"><h3>Avant de rendre la copie : ${VERIFS.length} vérifications</h3><ul class="checks">${VERIFS.map(v => `<li>${v}</li>`).join('')}</ul></div>
     <div class="pn"><a class="btn primary" href="#exos">S'entraîner →</a></div>`;
     $$('.aig-row').forEach(b => b.onclick = () => { const d = $('#rc' + b.dataset.r); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
@@ -622,7 +624,7 @@ function route(keep) {
     byClick = false; cur = location.hash;
     app.innerHTML = '';
     ROUTES[name](sub);
-    $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === (name === 'atelier' ? 'cours' : name)));
+    $$('#tabs a').forEach(a => a.classList.toggle('on', a.dataset.r === (name === 'atelier' ? (sub === 'probleme' ? 'methodes' : 'cours') : name)));
     if (keep !== true) { app.classList.remove('in'); void app.offsetWidth; app.classList.add('in'); }
     window.scrollTo(0, y);
     if (name !== 'accueil' && S.last !== location.hash) { S.last = location.hash; save(); }

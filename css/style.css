@@ -474,3 +474,12 @@ main.in { animation: pagein .26s ease-out; }
     .tbl.left td { overflow-wrap: anywhere; }
     .tbl.left td:first-child { white-space: normal; }
 }
+
+/* Problèmes guidés : les 5 étapes */
+.pb-steps li.todo { color: var(--muted); }
+.pb-steps li.ok { color: var(--text); }
+.pb-t { font-family: var(--fh); font-weight: 800; display: block; }
+.pb-steps li.ok .pb-t { color: var(--ok); }
+.pb-ok { font-weight: 400; margin-top: 4px; }
+.pb-q { margin-top: 8px; font-weight: 500; }
+.pb-modele::before { content: 'Sur ta copie'; }
