@@ -238,6 +238,7 @@ function vExos(sub) {
         app.innerHTML = `<h1>Exercices</h1><p class="sub">${EX.length} exercices corrigés, chacun avec un indice et une correction détaillée.</p>
         <div class="card total">${meter(s.exos)}</div>
         ${retry.length ? `<a class="row hot" href="#exos/R"><span class="num">↻</span><span class="row-t"><b>À retravailler</b><small>${plur(retry.length, 'exercice')} à refaire</small></span><span class="go">→</span></a>` : ''}
+        <a class="row hot2" href="#masterclass"><span class="num">★</span><span class="row-t"><b>Masterclass Snell-Descartes</b><small>Le cours à relire et 25 exercices</small></span><span class="go">→</span></a>
         <a class="row hot2" href="#atelier/probleme"><span class="num">5</span><span class="row-t"><b>Problèmes guidés</b><small>La méthode en 5 étapes, validées une par une</small></span><span class="go">→</span></a>
         <div class="list">${keys.map(k => { const l = EX.filter(e => e.t === k), ok = l.filter(e => stOf(e.id) === 'ok').length; return `<a class="row" href="#exos/${k}"><span class="row-t"><b>${THEMES[k].nom}</b><small>${plur(l.length, 'exercice')}</small></span><span class="row-m">${meter([ok, l.length])}</span></a>`; }).join('')}</div>`;
         return;
@@ -271,6 +272,7 @@ function vHome() {
     else msg = `Tout est fait. Chapeau.`;
     const tile = (href, t, sub, m, cls) => `<a class="tile ${cls}" href="#${href}"><h3>${t}</h3><p>${sub}</p>${m ? `<div class="tile-m">${meter(m)}</div>` : ''}</a>`;
     app.innerHTML = `
+    ${mcBanner()}
     <section class="hero">
       ${figPrisme(true)}
       <h1>La lumière.<br><span class="grad">Tout comprendre.</span></h1>
@@ -613,7 +615,7 @@ function vBlanc() {
 }
 
 /* ================= NAVIGATION ================= */
-const ROUTES = { accueil: vHome, cours: vCours, atelier: vAtelier, methodes: vMeth, exos: vExos, controle: vCtrl };
+const ROUTES = { accueil: vHome, cours: vCours, atelier: vAtelier, methodes: vMeth, exos: vExos, controle: vCtrl, masterclass: vMasterclass };
 const SCROLL = {}; let byClick = false, cur = location.hash;
 try { history.scrollRestoration = 'manual'; } catch (e) { }
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('a[href^="#"]')) byClick = true; }, true);

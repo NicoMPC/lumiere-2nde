@@ -21,6 +21,7 @@ question : « est-ce que ça fait gagner des points au contrôle ? »
 
 | Onglet | Contenu |
 |---|---|
+| **Masterclass** (bandeau en tête de l'accueil, `#masterclass`) | Snell-Descartes seul : animation du rayon, 6 cartes de cours à relire, 25 exercices en 6 familles (repérer, trouver i₂, trouver i₁, trouver n, identifier le milieu, problèmes), corrections en 5 étapes. |
 | **Cours** | 12 chapitres courts : définitions au mot près, schéma, exemple, piège, « Je retiens », puis une question qui valide le chapitre. Les manipulations (simulateur de réfraction, réfraction guidée, schéma à trous, puissances de 10, spectres, banc d'optique) s'ouvrent depuis le chapitre concerné. |
 | **Méthodes** | Un aiguillage « quel exercice ai-je devant moi ? » et 9 recettes en étapes « si… alors… », plus les vérifications avant de rendre la copie. La recette 0 ouvre les **problèmes guidés** : 8 problèmes découpés en 5 étapes validées une par une, puis la rédaction modèle « sur ta copie ». |
 | **Exercices** | 94 exercices par thème (dont deux thèmes « outils » placés en premier : règles des puissances, conversions d'unités), réponse vérifiée, indice, correction détaillée, liste « à retravailler », bouton « Refaire ». |
@@ -39,6 +40,7 @@ question : « est-ce que ça fait gagner des points au contrôle ? »
 | `js/lentilles.js` | Le chapitre lentilles : pousse dans `CH`, `RC`, `EX`, `FL`… et définit `figLens` et l'atelier « banc d'optique ». |
 | `js/gen.js` | 15 générateurs de questions à valeurs aléatoires (`GEN`), déterministes par graine. Seul `GEN[GEN_POW]` est utilisé aujourd'hui (entraînement aux puissances de 10). |
 | `js/methode.js` | Les outils, ajoutés le 6 octobre 2026 : thèmes `P` (règles des puissances) et `U` (conversions), les 5 étapes (`ETAPES`), les problèmes guidés (`PB`) et leur atelier `labProbleme` (`#atelier/probleme`). |
+| `js/masterclass.js` | La Masterclass Snell-Descartes, ajoutée le 1er novembre 2026 : thème `SD`, exercices `SD1` à `SD25`, cartes relues dans `S.mc`, page `vMasterclass` et bandeau `mcBanner`. |
 | `js/calc.js` | La calculatrice (`Calc.open()`, `Calc.toggle()`, analyseur maison, pas de `eval`). |
 | `js/app.js` | Le moteur : sauvegarde, navigation par `#hash`, rendu des exercices, séries avec Précédent / Suivant, cartes mémoire, contrôle blanc. |
 | `fiche-lumiere.pdf` | La fiche imprimable (10 pages). |
@@ -46,7 +48,7 @@ question : « est-ce que ça fait gagner des points au contrôle ? »
 | `tests/verif-contenu.js` | Vérification du contenu (voir plus bas). |
 
 Ordre de chargement des scripts : `gfx.js`, `data.js`, `gen.js`, `lentilles.js`,
-`methode.js`, `calc.js`, `suivi.js`, `app.js`.
+`methode.js`, `masterclass.js`, `calc.js`, `suivi.js`, `app.js`.
 
 ## Modifier le contenu
 
